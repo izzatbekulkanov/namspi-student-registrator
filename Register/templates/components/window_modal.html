@@ -1,10 +1,10 @@
 <!-- 🪟 Global Daily Window Modal Component -->
 <div class="modal fade" id="windowModal" tabindex="-1" aria-labelledby="windowModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+    <div class="modal-content border-0 shadow-lg overflow-hidden">
       <div class="p-4 text-white text-center position-relative" style="background: linear-gradient(135deg, #0d6efd 0%, #1e40af 100%);">
-        <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex align-items-center justify-content-center mb-2" style="width: 56px; height: 56px;">
-          <i class="bi bi-window-dock fs-2 text-white"></i>
+        <div class="bg-white bg-opacity-25 d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px; border-radius: var(--radius-sm);">
+          <i class="bi bi-window-dock fs-3 text-white"></i>
         </div>
         <h5 class="fw-bold mb-1" id="windowModalLabel">Kunlik Ish Oynasi</h5>
         <p class="small mb-0 opacity-75">Bugungi xizmat ko‘rsatish oyna raqamingizni belgilang</p>
@@ -21,8 +21,8 @@
           <div class="input-group">
             <span class="input-group-text bg-light text-secondary"><i class="bi bi-person-badge"></i></span>
             <select id="is_leader_select" name="is_leader" class="form-select" required>
-              <option value="no" {% if not is_leader %}selected{% endif %}>🟢 Operator (Oynada xizmat ko‘rsatish)</option>
-              <option value="yes" {% if is_leader %}selected{% endif %}>🔵 Rahbar / Nazoratchi (Oynasiz)</option>
+              <option value="no" {% if not is_leader %}selected{% endif %}>Operator (Oynada xizmat ko‘rsatish)</option>
+              <option value="yes" {% if is_leader %}selected{% endif %}>Rahbar / Nazoratchi (Oynasiz)</option>
             </select>
           </div>
         </div>
@@ -42,11 +42,11 @@
         </div>
 
         <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);">
+          <button type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm">
             <i class="bi bi-check2-circle me-1"></i> Saqlash va Tasdiqlash
           </button>
           {% if has_window %}
-          <button type="button" class="btn btn-light py-2 rounded-3 text-secondary" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-light py-2 text-secondary border" data-bs-dismiss="modal">
             Yopish
           </button>
           {% endif %}

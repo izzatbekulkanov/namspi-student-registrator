@@ -7,22 +7,22 @@
 <div class="container-fluid px-0">
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+      <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
         <i class="bi bi-collection-fill text-primary"></i> Bo‘limlar va Xizmatlar Boshqaruvi
-      </h4>
+      </h5>
       <p class="text-secondary small mb-0">Tizimdagi asosiy xizmat bo‘limlari va ularning quyi xizmat turlarini sozlash</p>
     </div>
   </div>
 
   <!-- 🧭 Navigatsiya Tablari -->
-  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 rounded-4 shadow-sm border" id="serviceTab" role="tablist">
+  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 border" id="serviceTab" role="tablist" style="border-radius: var(--radius-sm);">
     <li class="nav-item" role="presentation">
-      <button class="nav-link rounded-pill px-4 fw-semibold {% if active_tab == 'section' %}active{% else %}text-secondary{% endif %}" id="section-tab" data-bs-toggle="pill" data-bs-target="#section" type="button" role="tab">
+      <button class="nav-link px-3 py-2 fw-semibold {% if active_tab == 'section' %}active{% else %}text-secondary{% endif %}" id="section-tab" data-bs-toggle="pill" data-bs-target="#section" type="button" role="tab">
         <i class="bi bi-folder2-open me-1"></i> 1. Asosiy Bo‘limlar ({{ sections|length }})
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link rounded-pill px-4 fw-semibold {% if active_tab == 'subservice' %}active{% else %}text-secondary{% endif %}" id="subservice-tab" data-bs-toggle="pill" data-bs-target="#subservice" type="button" role="tab">
+      <button class="nav-link px-3 py-2 fw-semibold {% if active_tab == 'subservice' %}active{% else %}text-secondary{% endif %}" id="subservice-tab" data-bs-toggle="pill" data-bs-target="#subservice" type="button" role="tab">
         <i class="bi bi-list-task me-1"></i> 2. Quyi Xizmatlar ({{ subservices|length }})
       </button>
     </li>
@@ -35,10 +35,10 @@
       <div class="row g-4">
         <!-- Qo‘shish formasi -->
         <div class="col-lg-5">
-          <div class="card-dashboard p-4 h-100">
-            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
               <i class="bi bi-plus-circle-fill text-primary"></i> Yangi Bo‘lim Qo‘shish
-            </h5>
+            </h6>
             <form method="POST" class="vstack gap-3">
               {% csrf_token %}
               <input type="hidden" name="active_tab" value="section">
@@ -56,7 +56,7 @@
                 <textarea name="description" class="form-control" rows="3" placeholder="Bo‘lim faoliyati haqida ixtiyoriy izoh..."></textarea>
               </div>
 
-              <button name="section_submit" type="submit" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm mt-2">
+              <button name="section_submit" type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm mt-1">
                 <i class="bi bi-check-circle-fill me-1"></i> Bo‘limni saqlash
               </button>
             </form>
@@ -65,14 +65,14 @@
 
         <!-- Mavjud bo‘limlar ro‘yxati -->
         <div class="col-lg-7">
-          <div class="card-dashboard p-4 h-100">
-            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
               <i class="bi bi-folder-check text-success"></i> Mavjud Bo‘limlar Ro‘yxati
-            </h5>
+            </h6>
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                  <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
                     <th>#</th>
                     <th>Bo‘lim nomi</th>
                     <th>Izoh</th>
@@ -89,7 +89,7 @@
                       <form method="post" action="{% url 'delete-section' s.id %}" class="d-inline" onsubmit="return confirm('Ushbu bo‘limni o‘chirmoqchimisiz? Unga bog‘langan barcha xizmatlar ham o‘chib ketishi mumkin!')">
                         {% csrf_token %}
                         <input type="hidden" name="active_tab" value="section">
-                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" title="O‘chirish">
+                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="O‘chirish">
                           <i class="bi bi-trash"></i>
                         </button>
                       </form>
@@ -98,7 +98,7 @@
                   {% empty %}
                   <tr>
                     <td colspan="4" class="text-center py-4 text-muted">
-                      <div class="fs-2 mb-1">📁</div>
+                      <i class="bi bi-folder text-secondary fs-2 d-block mb-1"></i>
                       <h6>Bo‘limlar mavjud emas</h6>
                     </td>
                   </tr>
@@ -116,10 +116,10 @@
       <div class="row g-4">
         <!-- Qo‘shish formasi -->
         <div class="col-lg-5">
-          <div class="card-dashboard p-4 h-100">
-            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
               <i class="bi bi-plus-circle-fill text-primary"></i> Yangi Xizmat Qo‘shish
-            </h5>
+            </h6>
             <form method="POST" class="vstack gap-3">
               {% csrf_token %}
               <input type="hidden" name="active_tab" value="subservice">
@@ -150,7 +150,7 @@
                 <textarea name="description" class="form-control" rows="3" placeholder="Xizmat haqida ixtiyoriy izoh..."></textarea>
               </div>
 
-              <button name="subservice_submit" type="submit" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm mt-2">
+              <button name="subservice_submit" type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm mt-1">
                 <i class="bi bi-check-circle-fill me-1"></i> Xizmatni saqlash
               </button>
             </form>
@@ -159,14 +159,14 @@
 
         <!-- Mavjud xizmatlar ro‘yxati -->
         <div class="col-lg-7">
-          <div class="card-dashboard p-4 h-100">
-            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
               <i class="bi bi-list-check text-success"></i> Mavjud Xizmatlar Ro‘yxati
-            </h5>
+            </h6>
             <div class="table-responsive">
               <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                  <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                  <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
                     <th>#</th>
                     <th>Xizmat nomi</th>
                     <th>Tegishli bo‘lim</th>
@@ -183,7 +183,7 @@
                       <form method="post" action="{% url 'delete-subservice' ss.id %}" class="d-inline" onsubmit="return confirm('Ushbu xizmatni o‘chirmoqchimisiz?')">
                         {% csrf_token %}
                         <input type="hidden" name="active_tab" value="subservice">
-                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" title="O‘chirish">
+                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="O‘chirish">
                           <i class="bi bi-trash"></i>
                         </button>
                       </form>
@@ -192,7 +192,7 @@
                   {% empty %}
                   <tr>
                     <td colspan="4" class="text-center py-4 text-muted">
-                      <div class="fs-2 mb-1">📋</div>
+                      <i class="bi bi-card-checklist text-secondary fs-2 d-block mb-1"></i>
                       <h6>Xizmatlar mavjud emas</h6>
                     </td>
                   </tr>

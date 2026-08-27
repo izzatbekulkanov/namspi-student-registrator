@@ -6,36 +6,31 @@
 {% block content %}
 <style>
   .login-card {
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 30px rgba(13, 110, 253, 0.15);
-    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
     width: 100%;
     max-width: 420px;
     padding: 2.25rem 2rem;
-    transition: transform 0.3s ease;
-  }
-  .login-card:hover {
-    transform: translateY(-2px);
   }
   .login-input-group .input-group-text {
     background-color: #f1f5f9;
     border-color: #cbd5e1;
     color: #475569;
+    border-radius: 4px 0 0 4px;
   }
   .login-input-group .form-control {
     border-color: #cbd5e1;
     padding: 0.65rem 0.9rem;
     font-size: 0.95rem;
+    border-radius: 0 4px 4px 0;
   }
   .login-input-group .form-control:focus {
     border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-  }
-  .brand-logo-glow {
-    filter: drop-shadow(0 4px 12px rgba(13, 110, 253, 0.3));
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.18);
   }
 </style>
 
@@ -44,7 +39,7 @@
 
     <!-- Logo & Sarlavha -->
     <div class="text-center mb-4">
-      <img src="{% static 'img/logo.png' %}" alt="NamDPI Logo" width="80" height="80" class="img-fluid brand-logo-glow mb-2">
+      <img src="{% static 'img/logo.png' %}" alt="NamDPI Logo" width="72" height="72" class="img-fluid mb-2">
       <h4 class="fw-bold text-dark mb-1">NamDPI REGISTRATOR</h4>
       <p class="text-secondary small mb-0">Elektron navbat tizimi boshqaruv paneli</p>
     </div>
@@ -67,22 +62,22 @@
         <label for="password" class="form-label fw-semibold small text-secondary">Maxfiy parol</label>
         <div class="input-group login-input-group">
           <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-          <input type="password" class="form-control" name="password" id="password" placeholder="Parol" autocomplete="current-password" required>
-          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()" tabindex="-1" style="border-color: #cbd5e1;">
+          <input type="password" class="form-control" name="password" id="password" placeholder="Parol" autocomplete="current-password" required style="border-radius: 0;">
+          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()" tabindex="-1" style="border-color: #cbd5e1; border-radius: 0 4px 4px 0;">
             <i id="eye-icon" class="bi bi-eye"></i>
           </button>
         </div>
       </div>
 
       {% if form.errors %}
-      <div class="alert alert-danger py-2 text-center small rounded-3 mb-3 border-0" style="background-color: #fee2e2; color: #991b1b;">
+      <div class="alert alert-danger py-2 text-center small mb-3 border-0" style="background-color: #fee2e2; color: #991b1b; border-radius: 4px;">
         <i class="bi bi-exclamation-circle me-1"></i> Foydalanuvchi nomi yoki parol noto‘g‘ri!
       </div>
       {% endif %}
 
       <!-- Kirish Tugmasi -->
       <div class="d-grid mt-4">
-        <button type="submit" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);">
+        <button type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm" style="border-radius: 4px;">
           <i class="bi bi-box-arrow-in-right me-1"></i> Tizimga kirish
         </button>
       </div>

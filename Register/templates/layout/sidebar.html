@@ -5,7 +5,7 @@
   <div class="sidebar-brand p-3 d-flex align-items-center justify-content-start border-bottom">
     <a href="{% url 'service-dashboard' %}" class="d-flex align-items-center gap-2 text-decoration-none overflow-hidden">
       <div class="brand-logo-circle flex-shrink-0">
-        <img src="{% static 'img/logo.png' %}" alt="Logo" width="32" height="32" class="img-fluid">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" width="28" height="28" class="img-fluid">
       </div>
       <div class="sidebar-hide-on-collapse overflow-hidden">
         <div class="fw-bold text-dark fs-6 line-height-1 text-nowrap">NamDPI <span class="text-primary">REG</span></div>
@@ -17,7 +17,7 @@
   <!-- 🧭 Navigatsiya Menyusi -->
   <div class="sidebar-menu flex-grow-1 p-2 overflow-y-auto">
     <!-- 1. ASOSIY BOSHQARUV -->
-    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2 mt-1" style="font-size: 0.7rem; letter-spacing: 0.8px;">
+    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2 mt-1" style="font-size: 0.68rem; letter-spacing: 0.8px;">
       Asosiy Boshqaruv
     </div>
     <ul class="nav flex-column gap-1 mb-3">
@@ -31,7 +31,7 @@
         <a href="{% url 'operator-queue' %}" class="sidebar-link {% if current == 'operator-queue' %}active{% endif %}" title="Operator Navbati">
           <i class="bi bi-person-lines-fill me-2 text-warning"></i>
           <span class="sidebar-hide-on-collapse">Operator Navbati</span>
-          <span class="badge bg-warning text-dark ms-auto font-monospace rounded-pill px-2 sidebar-hide-on-collapse" id="sidebar-waiting-badge">
+          <span class="badge bg-warning text-dark ms-auto font-monospace sidebar-hide-on-collapse" id="sidebar-waiting-badge">
             Navbat
           </span>
         </a>
@@ -39,7 +39,7 @@
     </ul>
 
     <!-- 2. MONITORING VA HISOBOTLAR -->
-    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.7rem; letter-spacing: 0.8px;">
+    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.68rem; letter-spacing: 0.8px;">
       Monitoring & Tahlil
     </div>
     <ul class="nav flex-column gap-1 mb-3">
@@ -59,7 +59,7 @@
     </ul>
 
     <!-- 3. TIZIM VA XODIMLAR -->
-    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.7rem; letter-spacing: 0.8px;">
+    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.68rem; letter-spacing: 0.8px;">
       Tizim & Xodimlar
     </div>
     <ul class="nav flex-column gap-1 mb-2">

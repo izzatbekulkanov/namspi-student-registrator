@@ -7,137 +7,120 @@
 <div class="container-fluid px-0">
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-        <i class="bi bi-people-fill text-primary"></i> Hodimlar ro‘yxati
-      </h4>
-      <p class="text-secondary small mb-0">Tizimga biriktirilgan barcha xodimlar va ularning faoliyat ko‘rsatkichlari</p>
+      <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-people-fill text-primary"></i> Tizim Hodimlari Ro‘yxati
+      </h5>
+      <p class="text-secondary small mb-0">Barcha ro‘yxatdan o‘tgan xodimlar, ularning rollari va biriktirilgan xizmatlari</p>
     </div>
-    <div>
-      <a href="{% url 'staff-add' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm">
-        <i class="bi bi-person-plus-fill me-1"></i> Yangi xodim qo‘shish
-      </a>
-    </div>
+    <a href="{% url 'staff-add' %}" class="btn btn-primary px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2">
+      <i class="bi bi-person-plus-fill"></i> Yangi xodim qo‘shish
+    </a>
   </div>
 
-  <div class="card-dashboard p-4 mb-4">
-    <form method="GET" class="mb-4 d-flex justify-content-between align-items-center gap-3 flex-wrap">
-      <div class="d-flex align-items-center gap-2">
-        <label for="departmentSelect" class="fw-semibold text-secondary small text-nowrap">Bo‘lim bo‘yicha:</label>
-        <select name="department" id="departmentSelect" class="form-select form-select-sm" style="min-width: 220px;" onchange="this.form.submit()">
-          <option value="">Barcha bo‘limlar</option>
-          {% for dept in departments %}
-            <option value="{{ dept }}" {% if dept == selected_department %}selected{% endif %}>{{ dept }}</option>
-          {% endfor %}
+  <div class="card-dashboard p-3 p-md-4">
+    <!-- Qidiruv paneli -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="staffFilterInput" class="form-control" placeholder="F.I.Sh yoki username bo‘yicha qidiruv...">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select id="roleFilterSelect" class="form-select">
+          <option value="">-- Barcha rollar --</option>
+          <option value="Admin">Admin</option>
+          <option value="Rahbar">Rahbar</option>
+          <option value="Operator">Operator</option>
         </select>
       </div>
-      
-      <div class="d-flex">
-        <input type="text" name="q" value="{{ request.GET.q|default:'' }}" class="form-control form-control-sm rounded-start-pill"
-               placeholder="🔍 Qidiruv..." style="min-width: 220px;">
-        <button type="submit" class="btn btn-sm btn-primary rounded-end-pill px-3">Izlash</button>
-      </div>
-    </form>
+    </div>
 
+    <!-- Jadval -->
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
+      <table class="table table-hover align-middle mb-0" id="staffMainTable">
         <thead class="table-light">
-          <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-            <th class="text-center">#</th>
-            <th>F.I.Sh.</th>
+          <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+            <th>#</th>
+            <th>Xodim (F.I.Sh)</th>
             <th>Username</th>
-            <th>Darajasi</th>
-            <th class="text-center">Bugun</th>
-            <th class="text-center">Umumiy</th>
+            <th>Bo‘lim & Lavozim</th>
             <th>Roli</th>
+            <th>Daraja</th>
             <th class="text-end">Amallar</th>
           </tr>
         </thead>
         <tbody>
-          {% for user in users %}
-          <tr>
-            <td class="text-center text-muted fw-bold">{{ forloop.counter0|add:page_obj.start_index }}</td>
+          {% for u in users %}
+          <tr class="staff-table-row">
+            <td class="text-muted fw-bold">{{ forloop.counter }}</td>
             <td>
-              <div class="fw-bold text-dark">{{ user.full_name|default:user.username }}</div>
-              <small class="text-muted">{{ user.department_name|default:"" }}</small>
+              <div class="d-flex align-items-center gap-2">
+                <div class="sidebar-user-avatar">
+                  {{ u.first_name|first|default:u.username|first }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ u.full_name|default:u.username }}</div>
+                  <small class="text-muted">{{ u.gender|default:"" }}</small>
+                </div>
+              </div>
+            </td>
+            <td><code class="text-primary">@{{ u.username }}</code></td>
+            <td>
+              <div class="text-dark fw-medium">{{ u.department_name|default:"Bo‘limsiz" }}</div>
+              <small class="text-muted">{{ u.staff_position|default:"Operator" }}</small>
             </td>
             <td>
-              <span class="badge bg-secondary bg-opacity-10 text-dark font-monospace border px-2 py-1">
-                @{{ user.username }}
+              <span class="badge {{ u.role_badge }} role-badge-text px-2 py-1">{{ u.role_title }}</span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border px-2 py-1 font-monospace">
+                {{ u.operatorprofile.level|default:"Boshlovchi" }}
               </span>
             </td>
-            <td>
-              {% with user.operatorprofile as p %}
-                {% if p.level == "VIP" %}<span class="badge bg-dark text-white px-2 py-1">👑 VIP</span>{% endif %}
-                {% if p.level == "Usta" %}<span class="badge bg-danger text-white px-2 py-1">🔥 Usta</span>{% endif %}
-                {% if p.level == "Yaxshi" %}<span class="badge bg-warning text-dark px-2 py-1">🌟 Yaxshi</span>{% endif %}
-                {% if p.level == "Oddiy" %}<span class="badge bg-primary px-2 py-1">⭐ Oddiy</span>{% endif %}
-                {% if p.level == "Boshlovchi" or not p.level %}<span class="badge bg-success px-2 py-1">🟢 Boshlovchi</span>{% endif %}
-              {% endwith %}
-            </td>
-            <td class="text-center"><span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1">{{ user.today_count }} ta</span></td>
-            <td class="text-center"><span class="badge bg-secondary bg-opacity-10 text-secondary fw-bold px-2 py-1">{{ user.total_count }} ta</span></td>
-            <td>
-              {% if user.is_superuser %}<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill"><i class="bi bi-shield-check"></i> Admin</span>
-              {% elif user.is_leader %}<span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1 rounded-pill"><i class="bi bi-person-workspace"></i> Rahbar</span>
-              {% elif user.is_operator %}<span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 rounded-pill"><i class="bi bi-headset"></i> Operator</span>
-              {% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">Foydalanuvchi</span>
-              {% endif %}
-            </td>
             <td class="text-end">
-              <form method="POST" action="{% url 'reset-password' user.id %}" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1" title="Parolni tiklash">
-                  <i class="bi bi-key me-1"></i> Parol
-                </button>
-              </form>
-              <form method="POST" action="{% url 'delete-staff' user.id %}" class="d-inline ms-1"
-                    onsubmit="return confirm('Rostdan ham ushbu xodimni o‘chirmoqchimisiz?')">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" title="O‘chirish">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+              <div class="d-inline-flex gap-1">
+                <a href="{% url 'assign-services' %}?user_id={{ u.id }}" class="btn btn-sm btn-outline-primary px-2 py-1" title="Xizmat biriktirish">
+                  <i class="bi bi-diagram-3"></i> Biriktirish
+                </a>
+              </div>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="8" class="text-muted text-center py-4">
-              <div class="fs-2 mb-1">🔍</div>
-              <h6>Xodimlar topilmadi</h6>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-people text-secondary fs-2 d-block mb-2"></i>
+              <h6>Hozircha xodimlar mavjud emas</h6>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-
-    {% if is_paginated %}
-    <div class="mt-4">
-      <nav>
-        <ul class="pagination pagination-sm justify-content-center mb-0">
-          {% if page_obj.has_previous %}
-          <li class="page-item">
-            <a class="page-link rounded-pill me-1" href="?q={{ request.GET.q }}&department={{ selected_department }}&page=1">&laquo;</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link rounded-pill me-1" href="?q={{ request.GET.q }}&department={{ selected_department }}&page={{ page_obj.previous_page_number }}">&lsaquo;</a>
-          </li>
-          {% endif %}
-          <li class="page-item disabled">
-            <span class="page-link rounded-pill mx-1 fw-bold">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-          </li>
-          {% if page_obj.has_next %}
-          <li class="page-item">
-            <a class="page-link rounded-pill ms-1" href="?q={{ request.GET.q }}&department={{ selected_department }}&page={{ page_obj.next_page_number }}">&rsaquo;</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link rounded-pill ms-1" href="?q={{ request.GET.q }}&department={{ selected_department }}&page={{ page_obj.paginator.num_pages }}">&raquo;</a>
-          </li>
-          {% endif %}
-        </ul>
-      </nav>
-    </div>
-    {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+  const searchInput = document.getElementById("staffFilterInput");
+  const roleSelect = document.getElementById("roleFilterSelect");
+
+  function filterStaff() {
+    const searchVal = searchInput.value.toLowerCase();
+    const roleVal = roleSelect.value.toLowerCase();
+
+    document.querySelectorAll(".staff-table-row").forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const roleText = row.querySelector(".role-badge-text")?.textContent.toLowerCase() || "";
+      const matchesSearch = text.includes(searchVal);
+      const matchesRole = !roleVal || roleText.includes(roleVal);
+
+      row.style.display = (matchesSearch && matchesRole) ? "" : "none";
+    });
+  }
+
+  searchInput?.addEventListener("input", filterStaff);
+  roleSelect?.addEventListener("change", filterStaff);
+</script>
 {% endblock %}

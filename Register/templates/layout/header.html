@@ -1,15 +1,15 @@
 {% load static %}
-<header class="header-pro bg-white border-bottom shadow-sm px-3 py-2">
+<header class="header-pro bg-white px-3 py-2">
   <div class="d-flex align-items-center justify-content-between">
     <!-- 📱 Chap qism: Sidebar toggle & Sahifa nomi -->
     <div class="d-flex align-items-center gap-2">
       <!-- Desktop collapse/expand button -->
-      <button class="btn btn-sm btn-light border rounded-3 d-none d-lg-flex align-items-center justify-content-center" type="button" onclick="toggleSidebarCollapse()" title="Yon panelni yig‘ish / yoyish" style="width: 34px; height: 34px;">
-        <i class="bi bi-layout-sidebar-inset text-secondary fs-6"></i>
+      <button class="btn btn-sm btn-light border d-none d-lg-flex align-items-center justify-content-center" type="button" onclick="toggleSidebarCollapse()" title="Yon panelni yig‘ish / yoyish" style="width: 32px; height: 32px;">
+        <i class="bi bi-layout-sidebar-inset text-secondary"></i>
       </button>
 
       <!-- Mobile offcanvas toggle button -->
-      <button class="btn btn-sm btn-light border rounded-3 d-lg-none d-flex align-items-center justify-content-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" style="width: 34px; height: 34px;">
+      <button class="btn btn-sm btn-light border d-lg-none d-flex align-items-center justify-content-center" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" style="width: 32px; height: 32px;">
         <i class="bi bi-list fs-5"></i>
       </button>
 
@@ -24,7 +24,7 @@
     <!-- 📊 O‘ng qism: Oyna, Daraja, Soat va Profil -->
     <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
       <!-- Jonli Soat & Sana -->
-      <div class="d-none d-md-flex align-items-center gap-2 bg-light px-3 py-1 rounded-pill border">
+      <div class="d-none d-md-flex align-items-center gap-2 bg-light px-2 py-1 border" style="border-radius: var(--radius-sm);">
         <i class="bi bi-clock text-primary small"></i>
         <span class="small fw-bold text-dark font-monospace" id="headerLiveClock">--:--:--</span>
       </div>
@@ -33,15 +33,15 @@
       <!-- 🪟 Kunlik Oyna Badge (Clickable modal) -->
       <button type="button" class="btn btn-sm p-0 border-0" data-bs-toggle="modal" data-bs-target="#windowModal" title="Oyna raqamini o‘zgartirish">
         {% if is_leader %}
-          <span class="badge bg-info text-dark rounded-pill px-3 py-2 shadow-sm">
+          <span class="badge bg-info text-dark">
             <i class="bi bi-person-badge me-1"></i> Rahbar
           </span>
         {% elif window_number %}
-          <span class="badge bg-primary text-white rounded-pill px-3 py-2 shadow-sm">
+          <span class="badge bg-primary text-white">
             <i class="bi bi-window-dock me-1"></i> Oyna #{{ window_number }}
           </span>
         {% else %}
-          <span class="badge bg-warning text-dark rounded-pill px-3 py-2 shadow-sm animate-pulse">
+          <span class="badge bg-warning text-dark animate-pulse">
             <i class="bi bi-exclamation-triangle me-1"></i> Oyna kiritilmagan
           </span>
         {% endif %}
@@ -49,21 +49,21 @@
 
       <!-- 👑 Daraja Rank Badge -->
       <div class="d-none d-sm-inline-block">
-        <span class="badge rank-badge-pill px-3 py-2 rounded-pill shadow-sm {% if level == 'VIP' %}rank-vip{% elif level == 'Usta' %}rank-usta{% elif level == 'Yaxshi' %}rank-yaxshi{% elif level == 'Oddiy' %}rank-oddiy{% else %}rank-boshlovchi{% endif %}">
-          <span class="me-1">{{ level_icon }}</span> {{ level }}
+        <span class="badge rank-badge-pill {% if level == 'VIP' %}rank-vip{% elif level == 'Usta' %}rank-usta{% elif level == 'Yaxshi' %}rank-yaxshi{% elif level == 'Oddiy' %}rank-oddiy{% else %}rank-boshlovchi{% endif %}">
+          <i class="{{ level_icon }} me-1"></i> {{ level }}
         </span>
       </div>
 
       <!-- 👤 User Dropdown -->
       <div class="dropdown ms-1">
-        <button class="btn btn-sm btn-light border d-flex align-items-center gap-2 rounded-pill px-3 py-1 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-sm btn-light border d-flex align-items-center gap-2 px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           <div class="user-avatar-sm">
             {{ user.first_name|first|default:user.username|first }}
           </div>
           <span class="fw-semibold text-dark small d-none d-md-inline">{{ user.username }}</span>
           <i class="bi bi-chevron-down small text-muted"></i>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2" style="min-width: 220px;">
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2" style="min-width: 220px;">
           <li class="px-3 py-2 border-bottom">
             <div class="fw-bold text-dark small">{{ user.full_name|default:user.username }}</div>
             <div class="text-muted small" style="font-size: 0.75rem;">{{ user.role_title }}</div>
@@ -95,7 +95,7 @@
         </ul>
       </div>
       {% else %}
-      <a href="{% url 'login' %}" class="btn btn-sm btn-primary rounded-pill px-3">Kirish</a>
+      <a href="{% url 'login' %}" class="btn btn-sm btn-primary px-3">Kirish</a>
       {% endif %}
     </div>
   </div>

@@ -48,13 +48,13 @@ def dashboard(request):
     level = profile.level or "Boshlovchi"
 
     level_icons = {
-        "Boshlovchi": "🟢",
-        "Oddiy": "⭐",
-        "Yaxshi": "🌟",
-        "Usta": "🔥",
-        "VIP": "👑"
+        "Boshlovchi": "bi bi-shield-check text-success",
+        "Oddiy": "bi bi-star-fill text-primary",
+        "Yaxshi": "bi bi-award-fill text-warning",
+        "Usta": "bi bi-fire text-danger",
+        "VIP": "bi bi-gem text-info"
     }
-    level_icon = level_icons.get(level, "🟢")
+    level_icon = level_icons.get(level, "bi bi-shield-check text-success")
 
     return render(request, 'services/dashboard.html', {
         'has_window': has_window,

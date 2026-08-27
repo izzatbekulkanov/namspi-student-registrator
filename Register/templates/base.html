@@ -9,30 +9,84 @@
   <!-- 🧠 Favicon -->
   <link rel="icon" type="image/x-icon" href="{% static 'img/queue.ico' %}">
 
+  <!-- ⚡ Sync Immediate Sidebar State (Flicker & Jump'ni 100% yo'qotish) -->
+  <script>
+    (function() {
+      try {
+        if (localStorage.getItem("sidebar_collapsed") === "true") {
+          document.documentElement.classList.add("sidebar-collapsed");
+        }
+      } catch(e) {}
+    })();
+  </script>
+
   <!-- Bootstrap Icons CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   {% bootstrap_css %}
 
   <style>
     :root {
-      --sidebar-width: 260px;
-      --sidebar-collapsed-width: 76px;
+      --sidebar-width: 250px;
+      --sidebar-collapsed-width: 72px;
       --primary-color: #0d6efd;
+      --primary-hover: #0b5ed7;
       --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);
       --bg-light: #f8fafc;
       --card-border: #e2e8f0;
+      --input-border: #cbd5e1;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
     }
 
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
-      overflow: hidden; /* Sahifa o'zi siljimaydi, faqat ichki kontent scroll bo'ladi */
+      overflow: hidden;
       background-color: var(--bg-light);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    /* 🧱 APP WRAPPER LAYOUT (100vh to'liq ekran) */
+    /* 🔲 TO'RTBURCHAKSIMON ENTERPRISE UI GLOBAL QOIDALARI */
+    .btn {
+      border-radius: var(--radius-sm) !important;
+      font-weight: 500;
+      transition: all 0.15s ease-in-out;
+    }
+    .form-control, .form-select, .input-group-text {
+      border-radius: var(--radius-sm) !important;
+      border-color: var(--input-border);
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.18);
+    }
+    .badge {
+      border-radius: 3px !important;
+      font-weight: 600;
+      padding: 0.35em 0.65em;
+    }
+    .card, .card-dashboard, .stat-card-pro, .action-card-pro, .modal-content, .offcanvas {
+      border-radius: var(--radius-md) !important;
+    }
+    .dropdown-menu {
+      border-radius: var(--radius-sm) !important;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .dropdown-item {
+      border-radius: 2px;
+      padding: 0.5rem 1rem;
+    }
+    .nav-pills .nav-link {
+      border-radius: var(--radius-sm) !important;
+    }
+    .nav-tabs .nav-link {
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+    }
+
+    /* 🧱 APP WRAPPER LAYOUT */
     .app-layout {
       display: flex;
       height: 100vh;
@@ -49,46 +103,42 @@
       border-right: 1px solid var(--card-border);
       display: flex;
       flex-direction: column;
-      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       z-index: 1030;
       overflow: hidden;
+      transition: width 0.2s ease, min-width 0.2s ease;
     }
 
-    /* 🎛️ COLLAPSED (KICHRAYTIRILGAN) SIDEBAR HOLATI */
+    /* 🎛️ COLLAPSED (KICHRAYTIRILGAN) SIDEBAR */
+    html.sidebar-collapsed .app-sidebar-desktop,
     body.sidebar-collapsed .app-sidebar-desktop {
-      width: var(--sidebar-collapsed-width);
-      min-width: var(--sidebar-collapsed-width);
+      width: var(--sidebar-collapsed-width) !important;
+      min-width: var(--sidebar-collapsed-width) !important;
     }
 
+    html.sidebar-collapsed .sidebar-hide-on-collapse,
     body.sidebar-collapsed .sidebar-hide-on-collapse {
       display: none !important;
     }
 
+    html.sidebar-collapsed .sidebar-brand,
     body.sidebar-collapsed .sidebar-brand {
       justify-content: center !important;
       padding: 0.75rem 0.5rem !important;
     }
 
+    html.sidebar-collapsed .sidebar-link,
     body.sidebar-collapsed .sidebar-link {
       justify-content: center !important;
       padding: 0.75rem 0.5rem !important;
     }
 
+    html.sidebar-collapsed .sidebar-link i,
     body.sidebar-collapsed .sidebar-link i {
       margin-right: 0 !important;
       font-size: 1.35rem !important;
     }
 
-    body.sidebar-collapsed .sidebar-footer {
-      padding: 0.75rem 0.5rem !important;
-      justify-content: center !important;
-    }
-
-    body.sidebar-collapsed .sidebar-user-avatar {
-      margin: 0 auto;
-    }
-
-    /* 📱 ASOSIY ILIK QISMI (HEADER + CONTENT + FOOTER) */
+    /* 📱 MAIN APP AREA */
     .app-main {
       flex: 1 1 auto;
       display: flex;
@@ -103,7 +153,8 @@
     .header-pro {
       flex: 0 0 auto;
       z-index: 1020;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--card-border);
     }
 
     /* 📄 MUSTAQIL SCROLL BO‘LUVCHI ASOSIY KONTENT */
@@ -119,21 +170,22 @@
     .footer-pro {
       flex: 0 0 auto;
       z-index: 1020;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.03);
+      border-top: 1px solid var(--card-border);
     }
 
     /* 🎨 SIDEBAR ELEMENTLARI */
     .sidebar-pro {
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       height: 100%;
     }
 
     .sidebar-link {
       color: #475569;
       font-weight: 500;
-      padding: 0.65rem 0.9rem;
-      border-radius: 0.65rem;
-      transition: all 0.2s ease;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
       display: flex;
       align-items: center;
       text-decoration: none;
@@ -142,17 +194,11 @@
     .sidebar-link:hover {
       background-color: #f1f5f9;
       color: var(--primary-color);
-      transform: translateX(3px);
-    }
-
-    body.sidebar-collapsed .sidebar-link:hover {
-      transform: scale(1.08);
     }
 
     .sidebar-link.active {
-      background: var(--primary-gradient);
+      background-color: var(--primary-color);
       color: #ffffff !important;
-      box-shadow: 0 4px 14px rgba(13, 110, 253, 0.28);
       font-weight: 600;
     }
 
@@ -161,19 +207,19 @@
     }
 
     .brand-logo-circle {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: rgba(13, 110, 253, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(13, 110, 253, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .sidebar-user-avatar, .user-avatar-sm {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
+    .user-avatar-sm {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
       background: var(--primary-gradient);
       color: white;
       font-weight: 700;
@@ -187,7 +233,8 @@
     /* 👑 RANK BADGES */
     .rank-badge-pill {
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
+      border-radius: var(--radius-sm) !important;
     }
 
     .rank-vip { background: linear-gradient(90deg, #ff0080, #7928ca); color: white; }
@@ -199,47 +246,29 @@
     /* 📦 CARDS & WIDGETS */
     .card-dashboard {
       background: #ffffff;
-      border-radius: 1.1rem;
+      border-radius: var(--radius-md);
       border: 1px solid var(--card-border);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .card-dashboard:hover {
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
 
     /* 📜 CUSTOM SCROLLBARS */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.3); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.35); }
   </style>
-
-  <!-- ⚡ Early Sidebar State (Flicker bo‘lmasligi uchun) -->
-  <script>
-    (function() {
-      const savedState = localStorage.getItem("sidebar_collapsed");
-      if (savedState === "true") {
-        document.documentElement.classList.add("sidebar-collapsed-preload");
-        document.addEventListener("DOMContentLoaded", function() {
-          document.body.classList.add("sidebar-collapsed");
-        });
-      }
-    })();
-  </script>
 
   {% block extra_css %}{% endblock %}
 </head>
 <body>
 
 <div class="app-layout">
-  <!-- 🧭 1. DESKTOP SIDEBAR (Katta ekranlar uchun) -->
+  <!-- 🧭 1. DESKTOP SIDEBAR -->
   <div class="app-sidebar-desktop d-none d-lg-block">
     {% include "layout/sidebar.html" %}
   </div>
 
-  <!-- 📱 2. MOBILE OFFCANVAS SIDEBAR (Kichik ekranlar uchun) -->
+  <!-- 📱 2. MOBILE OFFCANVAS SIDEBAR -->
   <div class="offcanvas offcanvas-start p-0 d-lg-none" tabindex="-1" id="sidebarOffcanvas" style="width: var(--sidebar-width);">
     <div class="offcanvas-header border-bottom py-2">
       <div class="d-flex align-items-center gap-2">
@@ -253,7 +282,7 @@
     </div>
   </div>
 
-  <!-- 🖥️ 3. MAIN APP AREA (Doimiy Header + Mustaqil Scroll Bo‘luvchi Content + Doimiy Footer) -->
+  <!-- 🖥️ 3. MAIN APP AREA -->
   <div class="app-main">
     <!-- 🔝 Doimiy Header -->
     {% include "layout/header.html" %}
@@ -279,9 +308,16 @@
 <script>
   // 🎛️ Sidebar Kichraytirish / Kattalashtirish (Collapse / Expand)
   function toggleSidebarCollapse() {
-    document.body.classList.toggle("sidebar-collapsed");
-    const isCollapsed = document.body.classList.contains("sidebar-collapsed");
-    localStorage.setItem("sidebar_collapsed", isCollapsed ? "true" : "false");
+    const isCurrentlyCollapsed = document.documentElement.classList.contains("sidebar-collapsed");
+    if (isCurrentlyCollapsed) {
+      document.documentElement.classList.remove("sidebar-collapsed");
+      document.body.classList.remove("sidebar-collapsed");
+      localStorage.setItem("sidebar_collapsed", "false");
+    } else {
+      document.documentElement.classList.add("sidebar-collapsed");
+      document.body.classList.add("sidebar-collapsed");
+      localStorage.setItem("sidebar_collapsed", "true");
+    }
   }
 
   // Jonli Header Soati

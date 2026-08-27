@@ -6,19 +6,19 @@
 {% block content %}
 <div class="container-fluid px-0">
   <!-- 🧭 Yuqori Sub-tabs Navigatsiyasi -->
-  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 rounded-4 shadow-sm border">
+  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 border" style="border-radius: var(--radius-sm);">
     <li class="nav-item">
-      <a href="{% url 'staff-add' %}" class="nav-link rounded-pill px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'staff-add' %}active{% else %}text-secondary{% endif %}">
+      <a href="{% url 'staff-add' %}" class="nav-link px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'staff-add' %}active{% else %}text-secondary{% endif %}">
         <i class="bi bi-person-plus-fill me-1"></i> Hodim qo‘shish
       </a>
     </li>
     <li class="nav-item">
-      <a href="{% url 'staff-list' %}" class="nav-link rounded-pill px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'staff-list' %}active{% else %}text-secondary{% endif %}">
+      <a href="{% url 'staff-list' %}" class="nav-link px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'staff-list' %}active{% else %}text-secondary{% endif %}">
         <i class="bi bi-people-fill me-1"></i> Hodimlar ro‘yxati
       </a>
     </li>
     <li class="nav-item">
-      <a href="{% url 'assign-services' %}" class="nav-link rounded-pill px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'assign-services' %}active{% else %}text-secondary{% endif %}">
+      <a href="{% url 'assign-services' %}" class="nav-link px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'assign-services' %}active{% else %}text-secondary{% endif %}">
         <i class="bi bi-diagram-3-fill me-1"></i> Bo‘lim biriktirish
       </a>
     </li>
