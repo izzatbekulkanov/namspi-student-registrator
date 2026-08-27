@@ -1,63 +1,96 @@
 {% extends "queueing/queueing_base.html" %}
 {% load static %}
 
-{% block title %}Kirish sahifasi{% endblock %}
+{% block title %}Tizimga kirish — NamDPI Registrator{% endblock %}
 
 {% block content %}
-<!-- Particle.js background -->
-<div id="particles-js" class="position-fixed top-0 start-0 w-100 h-100 z-n1"></div>
+<style>
+  .login-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25), 0 0 30px rgba(13, 110, 253, 0.15);
+    border-radius: 1.5rem;
+    width: 100%;
+    max-width: 420px;
+    padding: 2.25rem 2rem;
+    transition: transform 0.3s ease;
+  }
+  .login-card:hover {
+    transform: translateY(-2px);
+  }
+  .login-input-group .input-group-text {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+  }
+  .login-input-group .form-control {
+    border-color: #cbd5e1;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.95rem;
+  }
+  .login-input-group .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  }
+  .brand-logo-glow {
+    filter: drop-shadow(0 4px 12px rgba(13, 110, 253, 0.3));
+  }
+</style>
 
-<!-- Login container -->
-<div class="d-flex justify-content-center align-items-center min-vh-100">
-  <div class="card shadow-lg border-0 p-4 bg-white bg-opacity-75 backdrop-blur rounded-4" style="width: 100%; max-width: 400px;">
+<div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 160px);">
+  <div class="login-card">
 
-    <!-- Logo -->
-    <div class="text-center mb-3">
-      <img src="{% static 'img/logo.png' %}" alt="Logo" width="72" height="72" class="img-fluid">
+    <!-- Logo & Sarlavha -->
+    <div class="text-center mb-4">
+      <img src="{% static 'img/logo.png' %}" alt="NamDPI Logo" width="80" height="80" class="img-fluid brand-logo-glow mb-2">
+      <h4 class="fw-bold text-dark mb-1">NamDPI REGISTRATOR</h4>
+      <p class="text-secondary small mb-0">Elektron navbat tizimi boshqaruv paneli</p>
     </div>
 
-    <h4 class="mb-4 text-center fw-semibold text-primary">Registrator tizimiga kirish</h4>
-
+    <!-- Login Formasi -->
     <form method="POST" novalidate>
       {% csrf_token %}
 
       <!-- Username -->
       <div class="mb-3">
-        <label for="username" class="form-label">Foydalanuvchi nomi</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control" name="username" id="username" placeholder="Username" required>
+        <label for="username" class="form-label fw-semibold small text-secondary">Foydalanuvchi nomi (Login)</label>
+        <div class="input-group login-input-group">
+          <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+          <input type="text" class="form-control" name="username" id="username" placeholder="Username" autocomplete="username" autofocus required>
         </div>
       </div>
 
       <!-- Password -->
       <div class="mb-3">
-        <label for="password" class="form-label">Parol</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-lock"></i></span>
-          <input type="password" class="form-control" name="password" id="password" placeholder="Parol" required>
-          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()" tabindex="-1">
+        <label for="password" class="form-label fw-semibold small text-secondary">Maxfiy parol</label>
+        <div class="input-group login-input-group">
+          <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+          <input type="password" class="form-control" name="password" id="password" placeholder="Parol" autocomplete="current-password" required>
+          <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()" tabindex="-1" style="border-color: #cbd5e1;">
             <i id="eye-icon" class="bi bi-eye"></i>
           </button>
         </div>
       </div>
 
       {% if form.errors %}
-      <div class="alert alert-danger mt-3 py-2 text-center" role="alert">
-        Login yoki parol noto‘g‘ri!
+      <div class="alert alert-danger py-2 text-center small rounded-3 mb-3 border-0" style="background-color: #fee2e2; color: #991b1b;">
+        <i class="bi bi-exclamation-circle me-1"></i> Foydalanuvchi nomi yoki parol noto‘g‘ri!
       </div>
       {% endif %}
 
-      <!-- Submit -->
+      <!-- Kirish Tugmasi -->
       <div class="d-grid mt-4">
-        <button type="submit" class="btn btn-primary">Kirish</button>
+        <button type="submit" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Tizimga kirish
+        </button>
       </div>
     </form>
 
-    <!-- Ro'yxatdan o‘tish -->
-    <div class="text-center mt-4">
-      <small class="text-muted">Ortga qaytish
-        <a href="/" class="text-decoration-none text-primary fw-medium">Bu yerni bosing</a>
+    <div class="text-center mt-4 pt-2 border-top">
+      <small class="text-muted">
+        Namangan Davlat Pedagogika Instituti
       </small>
     </div>
   </div>
@@ -65,10 +98,6 @@
 {% endblock %}
 
 {% block script %}
-<!-- Particle.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-
-<!-- Password toggle -->
 <script>
   function togglePassword() {
     const passwordInput = document.getElementById("password");
@@ -84,42 +113,5 @@
       icon.classList.add("bi-eye");
     }
   }
-</script>
-
-<!-- Particle.js init -->
-<script>
-particlesJS("particles-js", {
-  "particles": {
-    "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
-    "color": { "value": "#4a90e2" },
-    "shape": { "type": "circle" },
-    "opacity": { "value": 0.5 },
-    "size": { "value": 3, "random": true },
-    "line_linked": {
-      "enable": true,
-      "distance": 120,
-      "color": "#cccccc",
-      "opacity": 0.4,
-      "width": 1
-    },
-    "move": {
-      "enable": true,
-      "speed": 1,
-      "direction": "none",
-      "out_mode": "out"
-    }
-  },
-  "interactivity": {
-    "events": {
-      "onhover": { "enable": true, "mode": "repulse" },
-      "onclick": { "enable": true, "mode": "push" }
-    },
-    "modes": {
-      "repulse": { "distance": 80 },
-      "push": { "particles_nb": 4 }
-    }
-  },
-  "retina_detect": true
-});
 </script>
 {% endblock %}
