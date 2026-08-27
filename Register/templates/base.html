@@ -16,55 +16,116 @@
   <style>
     :root {
       --sidebar-width: 260px;
+      --sidebar-collapsed-width: 76px;
       --primary-color: #0d6efd;
       --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);
       --bg-light: #f8fafc;
       --card-border: #e2e8f0;
     }
 
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Sahifa o'zi siljimaydi, faqat ichki kontent scroll bo'ladi */
       background-color: var(--bg-light);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
     }
 
-    /* 🧱 APP WRAPPER LAYOUT */
+    /* 🧱 APP WRAPPER LAYOUT (100vh to'liq ekran) */
     .app-layout {
       display: flex;
-      flex: 1 1 auto;
-      min-height: 100vh;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
     }
 
     /* 🧭 DESKTOP SIDEBAR */
     .app-sidebar-desktop {
       width: var(--sidebar-width);
       min-width: var(--sidebar-width);
-      position: sticky;
-      top: 0;
       height: 100vh;
-      z-index: 1020;
+      background-color: #ffffff;
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1030;
+      overflow: hidden;
     }
 
-    /* 📱 MAIN CONTENT WRAPPER */
+    /* 🎛️ COLLAPSED (KICHRAYTIRILGAN) SIDEBAR HOLATI */
+    body.sidebar-collapsed .app-sidebar-desktop {
+      width: var(--sidebar-collapsed-width);
+      min-width: var(--sidebar-collapsed-width);
+    }
+
+    body.sidebar-collapsed .sidebar-hide-on-collapse {
+      display: none !important;
+    }
+
+    body.sidebar-collapsed .sidebar-brand {
+      justify-content: center !important;
+      padding: 0.75rem 0.5rem !important;
+    }
+
+    body.sidebar-collapsed .sidebar-link {
+      justify-content: center !important;
+      padding: 0.75rem 0.5rem !important;
+    }
+
+    body.sidebar-collapsed .sidebar-link i {
+      margin-right: 0 !important;
+      font-size: 1.35rem !important;
+    }
+
+    body.sidebar-collapsed .sidebar-footer {
+      padding: 0.75rem 0.5rem !important;
+      justify-content: center !important;
+    }
+
+    body.sidebar-collapsed .sidebar-user-avatar {
+      margin: 0 auto;
+    }
+
+    /* 📱 ASOSIY ILIK QISMI (HEADER + CONTENT + FOOTER) */
     .app-main {
       flex: 1 1 auto;
       display: flex;
       flex-direction: column;
+      height: 100vh;
       min-width: 0;
       background-color: var(--bg-light);
+      overflow: hidden;
     }
 
+    /* 🔝 DOIMIY KO‘RINUVCHI HEADER (FIXED TOP) */
+    .header-pro {
+      flex: 0 0 auto;
+      z-index: 1020;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 📄 MUSTAQIL SCROLL BO‘LUVCHI ASOSIY KONTENT */
     .app-content {
       flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding: 1.5rem;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* 🎨 SIDEBAR STYLES */
+    /* 🔚 DOIMIY KO‘RINUVCHI FOOTER (FIXED BOTTOM) */
+    .footer-pro {
+      flex: 0 0 auto;
+      z-index: 1020;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    /* 🎨 SIDEBAR ELEMENTLARI */
     .sidebar-pro {
       font-size: 0.9rem;
+      height: 100%;
     }
 
     .sidebar-link {
@@ -84,6 +145,10 @@
       transform: translateX(3px);
     }
 
+    body.sidebar-collapsed .sidebar-link:hover {
+      transform: scale(1.08);
+    }
+
     .sidebar-link.active {
       background: var(--primary-gradient);
       color: #ffffff !important;
@@ -96,8 +161,8 @@
     }
 
     .brand-logo-circle {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
       background: rgba(13, 110, 253, 0.1);
       display: flex;
@@ -147,9 +212,22 @@
     /* 📜 CUSTOM SCROLLBARS */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.18); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.3); }
   </style>
+
+  <!-- ⚡ Early Sidebar State (Flicker bo‘lmasligi uchun) -->
+  <script>
+    (function() {
+      const savedState = localStorage.getItem("sidebar_collapsed");
+      if (savedState === "true") {
+        document.documentElement.classList.add("sidebar-collapsed-preload");
+        document.addEventListener("DOMContentLoaded", function() {
+          document.body.classList.add("sidebar-collapsed");
+        });
+      }
+    })();
+  </script>
 
   {% block extra_css %}{% endblock %}
 </head>
@@ -175,17 +253,17 @@
     </div>
   </div>
 
-  <!-- 🖥️ 3. MAIN APP AREA (Header + Content + Footer) -->
+  <!-- 🖥️ 3. MAIN APP AREA (Doimiy Header + Mustaqil Scroll Bo‘luvchi Content + Doimiy Footer) -->
   <div class="app-main">
-    <!-- Header -->
+    <!-- 🔝 Doimiy Header -->
     {% include "layout/header.html" %}
 
-    <!-- Asosiy Sahifa Kontenti -->
+    <!-- 📄 Asosiy Sahifa Kontenti (Scrollable Area) -->
     <main class="app-content">
       {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
+    <!-- 🔚 Doimiy Footer -->
     {% include "layout/footer.html" %}
   </div>
 </div>
@@ -199,6 +277,13 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+  // 🎛️ Sidebar Kichraytirish / Kattalashtirish (Collapse / Expand)
+  function toggleSidebarCollapse() {
+    document.body.classList.toggle("sidebar-collapsed");
+    const isCollapsed = document.body.classList.contains("sidebar-collapsed");
+    localStorage.setItem("sidebar_collapsed", isCollapsed ? "true" : "false");
+  }
+
   // Jonli Header Soati
   function updateHeaderClock() {
     const el = document.getElementById("headerLiveClock");
