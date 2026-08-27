@@ -116,13 +116,13 @@
   <div class="hero-banner-pro mb-4">
     <div class="row align-items-center g-3 position-relative" style="z-index: 1;">
       <div class="col-lg-8">
-        <div class="d-flex align-items-center gap-3 mb-2">
-          <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 small">
-            <span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px;" role="status"></span>
-            Tizim faoliyatda
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+          <span class="badge rounded-pill px-3 py-1 small border d-inline-flex align-items-center gap-1 shadow-sm" style="background-color: rgba(34, 197, 94, 0.2); color: #86efac; border-color: rgba(74, 222, 128, 0.4) !important;">
+            <span class="spinner-grow spinner-grow-sm" style="width: 7px; height: 7px; background-color: #4ade80;" role="status"></span>
+            <span class="fw-semibold">Tizim faol (Online)</span>
           </span>
-          <span class="badge bg-primary text-white rounded-pill px-3 py-1 small">
-            {{ request.user.role_title }}
+          <span class="badge bg-white text-dark shadow-sm rounded-pill px-3 py-1 small fw-semibold">
+            <i class="bi bi-shield-check text-primary me-1"></i> {{ request.user.role_title }}
           </span>
         </div>
         <h2 class="fw-bold text-white mb-1">
