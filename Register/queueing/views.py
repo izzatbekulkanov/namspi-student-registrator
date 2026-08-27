@@ -72,32 +72,31 @@ def queue_display_view(request):
 def ajax_operator_serving_tickets(request):
     today = now().date()
 
-    # Barcha bugungi xizmat qilayotgan navbatlar (serving)
+    # Hozir xizmat ko‘rsatilayotgan barcha navbatlar (serving)
     serving_tickets = QueueTicket.objects.filter(
-        status='serving',
-        created_at__date=today
-    ).select_related('served_by').order_by('created_at')
+        status='serving'
+    ).select_related('served_by', 'service', 'service__section').order_by('-started_at', '-created_at')
 
     ticket_data = []
 
     for ticket in serving_tickets:
-        # Har bir operatorning oyna raqamini olishga harakat qilamiz
-        try:
-            window = DailyWorkWindow.objects.get(operator=ticket.served_by, date=today)
-            operator_window = window.window_number
-        except DailyWorkWindow.DoesNotExist:
-            operator_window = None
+        # Operatorning bugungi oyna raqamini aniqlash
+        operator_window = None
+        if ticket.served_by:
+            try:
+                window = DailyWorkWindow.objects.filter(operator=ticket.served_by, date=today).first()
+                if window:
+                    operator_window = window.window_number
+            except Exception:
+                pass
 
         ticket_data.append({
             'id': ticket.id,
             'ticket_number': ticket.ticket_number,
             'window_number': ticket.window_number or operator_window,
-            'service_name': ticket.service.name,
+            'service_name': ticket.service.name if ticket.service else "",
             'operator_name': ticket.served_by.get_full_name() if ticket.served_by else "Noma'lum"
         })
-
-    # 🖨️ Konsolga chiqarish (debug uchun)
-    print("🧾 Barcha operatorlar kutayotgan navbatlar:", ticket_data)
 
     return JsonResponse({'tickets': ticket_data})
 

@@ -1,18 +1,19 @@
 {% extends "queueing/queueing_base.html" %}
 {% load static %}
 
-{% block title %}Navbatlar{% endblock %}
+{% block title %}Xizmat ko‘rsatilayotgan navbatlar{% endblock %}
 
 {% block content %}
 <style>
   #page-loader {
     position: fixed;
     z-index: 9999;
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.85);
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
   }
   .loader-circle {
     width: 60px;
@@ -27,55 +28,86 @@
   .alert-overlay {
     position: absolute;
     top: 50%;
-    left: 0;
-    right: 0;
-    margin: 0 auto;
-    padding: 5px;
-    background: white;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px 40px;
+    background: rgba(15, 23, 42, 0.92);
+    border: 2px solid rgba(13, 110, 253, 0.6);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(13, 110, 253, 0.4);
     text-align: center;
-    border-radius: 10px;
-    width: 100%;
-    z-index: 10;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 550px;
+    z-index: 20;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .alert-overlay .alert-badge {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #ffc107;
+    margin-bottom: 12px;
   }
   .alert-overlay .ticket-number {
-    font-size: 6rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 5.5rem;
     font-weight: 900;
-    color: #0d6efd;
+    color: #60a5fa;
+    text-shadow: 0 4px 20px rgba(96, 165, 250, 0.6);
+    line-height: 1;
+    margin-bottom: 12px;
   }
   .alert-overlay .window-number {
-    font-size: 5rem;
+    font-size: 2.8rem;
     font-weight: 800;
-    color: #6610f2;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+    padding: 8px 30px;
+    border-radius: 40px;
+    display: inline-block;
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.5);
   }
+  .queue-scroll {
+    overflow-y: auto;
+    max-height: calc(100vh - 270px);
+  }
+  .queue-scroll::-webkit-scrollbar { width: 6px; }
+  .queue-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 4px; }
 </style>
 
 <!-- Loader -->
 <div id="page-loader"><div class="loader-circle"></div></div>
 
-<div class="container-fluid py-4 d-flex flex-column" style="min-height: calc(100vh - 160px);">
+<div class="container-fluid py-3 d-flex flex-column" style="min-height: calc(100vh - 160px);">
   <div class="row flex-grow-1 g-4">
-    <!-- Kutilayotganlar -->
+    <!-- Xizmat ko‘rsatilayotganlar -->
     <div class="col-md-4 d-flex flex-column">
-      <div class="navbat-container d-flex flex-column h-100">
-        <h3 class="text-white fw-bold text-center mb-3">Kutilayotganlar</h3>
-        <div class="queue-scroll flex-grow-1" id="serving-tickets-box"></div>
+      <div class="navbat-container d-flex flex-column h-100 p-3 rounded-4 shadow-sm" style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.15);">
+        <h4 class="text-white fw-bold text-center mb-3">🔔 Xizmat ko‘rsatilayotganlar</h4>
+        <div class="queue-scroll flex-grow-1" id="serving-tickets-box">
+          <p class="text-white text-center mt-4 fs-5 opacity-75">⏳ Yuklanmoqda...</p>
+        </div>
       </div>
     </div>
 
     <!-- Video va e’lon -->
     <div class="col-md-8 d-flex flex-column h-100">
-      <div class="flex-grow-1 position-relative rounded-4 overflow-hidden shadow">
+      <div class="flex-grow-1 position-relative rounded-4 overflow-hidden shadow" style="background: #000; min-height: 420px;">
         <video id="videoPlayer" autoplay muted loop playsinline class="w-100 h-100 object-fit-cover rounded-4">
           <source src="{% static 'video/videoplayback.mp4' %}" type="video/mp4">
+          <source src="{% static 'video/web.webm' %}" type="video/webm">
         </video>
         <div id="ticketAlert" class="alert-overlay d-none">
-          <div class="ticket-number" id="ticketNumber"></div>
-          <div class="window-number" id="windowNumber"></div>
+          <div class="alert-badge">Xizmatga taklif etiladi</div>
+          <div class="ticket-number" id="ticketNumber">0000</div>
+          <div class="window-number" id="windowNumber">1-oyna</div>
         </div>
       </div>
 
-      <div class="bg-primary bg-opacity-10 text-white text-center p-3 rounded-3 shadow-sm fw-semibold mt-3">
-        📢 Reklama: Hujjatlaringizni masofadan olish uchun onlayn xizmatlarimizdan foydalaning!
+      <div class="bg-primary bg-opacity-25 text-white text-center p-3 rounded-3 shadow-sm fw-semibold mt-3 border border-primary border-opacity-25">
+        📢 Namangan Davlat Pedagogika Instituti — Elektron Navbat Tizimi
       </div>
     </div>
   </div>
@@ -92,26 +124,36 @@
   const ticketAlert = document.getElementById("ticketAlert");
   const ticketNumberEl = document.getElementById("ticketNumber");
   const windowNumberEl = document.getElementById("windowNumber");
-  const dingSound = document.getElementById("dingSound");
 
   let lastAnnouncedIds = new Set();
+  let isFirstFetch = true;
 
   function pad(number) {
-    return number.toString().padStart(4, '0');
+    return String(number || "").padStart(4, '0');
   }
 
   function playAudioSequence(audioPaths, onComplete) {
-    if (!audioPaths.length) return onComplete();
+    if (!audioPaths || !audioPaths.length) {
+      if (onComplete) onComplete();
+      return;
+    }
 
-    const audio = new Audio(audioPaths[0]);
-    audio.onended = () => playAudioSequence(audioPaths.slice(1), onComplete);
-    audio.play().catch(() => {});
+    const currentSrc = audioPaths[0];
+    const remaining = audioPaths.slice(1);
+    const audio = new Audio(currentSrc);
+
+    audio.onended = () => playAudioSequence(remaining, onComplete);
+    audio.onerror = () => playAudioSequence(remaining, onComplete);
+    audio.play().catch(() => playAudioSequence(remaining, onComplete));
   }
 
   function announceTicket(ticket, callback) {
     // 1. Vizual ko‘rsatish
-    ticketNumberEl.textContent = ticket.ticket_number;
-    windowNumberEl.textContent = `${ticket.window_number || "?"}-oyna`;
+    const ticketNumStr = pad(ticket.ticket_number);
+    const windowNum = ticket.window_number ? String(ticket.window_number) : "";
+
+    ticketNumberEl.textContent = ticketNumStr;
+    windowNumberEl.textContent = windowNum ? `${windowNum} - oyna` : "Xizmat oynasi";
     ticketAlert.classList.remove("d-none");
 
     // 2. Audio fayllarni tayyorlash
@@ -120,22 +162,26 @@
     // 🎵 Ding dong
     voices.push("{% static 'sound/ding-dong.mp3' %}");
 
-    // 🎵 Raqamlar
-    pad(ticket.ticket_number).split('').forEach(ch => {
+    // 🎵 Raqamlar (0-9)
+    for (let ch of ticketNumStr) {
       voices.push(`{% static 'voice/' %}${ch}.mp3`);
-    });
+    }
     voices.push("{% static 'voice/inchi_raqam_iltimos.mp3' %}");
 
-    // 🎵 Oyna raqami
-    ticket.window_number.toString().split('').forEach(ch => {
-      voices.push(`{% static 'voice/' %}${ch}.mp3`);
-    });
-    voices.push("{% static 'voice/inchi_oynaga_boring.mp3' %}");
+    // 🎵 Oyna raqami (agar mavjud bo'lsa)
+    if (windowNum) {
+      for (let ch of windowNum) {
+        voices.push(`{% static 'voice/' %}${ch}.mp3`);
+      }
+      voices.push("{% static 'voice/inchi_oynaga_boring.mp3' %}");
+    }
 
     // 3. Audio ketma-ket ijro
     playAudioSequence(voices, () => {
-      ticketAlert.classList.add("d-none");
-      if (callback) callback();
+      setTimeout(() => {
+        ticketAlert.classList.add("d-none");
+        if (callback) callback();
+      }, 1500);
     });
   }
 
@@ -143,65 +189,83 @@
     if (index >= tickets.length) return;
 
     const ticket = tickets[index];
-    if (lastAnnouncedIds.has(ticket.id)) {
+    const ticketKey = String(ticket.id || ticket.ticket_number);
+
+    if (lastAnnouncedIds.has(ticketKey)) {
       announceTickets(tickets, index + 1);
       return;
     }
 
-    lastAnnouncedIds.add(ticket.id);
+    lastAnnouncedIds.add(ticketKey);
     announceTicket(ticket, () => {
-      setTimeout(() => announceTickets(tickets, index + 1), 1000); // 1s delay
+      setTimeout(() => announceTickets(tickets, index + 1), 800);
     });
   }
 
   function updateServingTickets() {
     fetch("{% url 'ajax-operator-waiting-tickets' %}")
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
       .then(data => {
-        const tickets = data.tickets;
-        const currentIds = Array.from(container.children).map(c => c.dataset.ticket);
-        const newIds = tickets.map(t => String(t.id));
+        const tickets = data.tickets || [];
+        const currentIds = Array.from(container.querySelectorAll("[data-ticket]")).map(c => c.dataset.ticket);
+        const newIds = tickets.map(t => String(t.id || t.ticket_number));
 
         // DOM yangilash
         if (JSON.stringify(currentIds) !== JSON.stringify(newIds)) {
           container.innerHTML = "";
           if (!tickets.length) {
-            container.innerHTML = '<p class="text-white text-center mt-4 fs-5">⏳ Hozircha navbat yo‘q</p>';
+            container.innerHTML = '<div class="text-white text-center mt-5 fs-5 opacity-75"><span class="d-block fs-1 mb-2">⏳</span>Hozircha xizmat ko‘rsatilayotgan navbatlar yo‘q</div>';
           } else {
             tickets.forEach(ticket => {
               const card = document.createElement("div");
-              card.className = "queue-card-lg d-flex justify-content-between align-items-center px-4 py-3 mb-3 shadow-sm rounded-3";
-              card.dataset.ticket = ticket.id;
-              card.style.background = "linear-gradient(to right, #e0f0ff, #f8fbff)";
+              card.className = "queue-card-lg d-flex justify-content-between align-items-center px-4 py-3 mb-3 shadow-sm rounded-4";
+              card.dataset.ticket = ticket.id || ticket.ticket_number;
+              card.style.background = "linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(240, 248, 255, 0.95))";
               card.style.borderLeft = "6px solid #0d6efd";
+              const windowDisplay = ticket.window_number ? `${ticket.window_number} - oyna` : "—";
               card.innerHTML = `
-                <div class="fs-3 fw-bold text-primary">${ticket.ticket_number}</div>
-                <div class="badge bg-primary text-white px-4 py-2 fs-6 rounded-pill shadow-sm">${ticket.window_number || "?"} - oyna</div>`;
+                <div class="fs-2 fw-bold text-primary font-monospace">${pad(ticket.ticket_number)}</div>
+                <div class="badge bg-primary text-white px-3 py-2 fs-6 rounded-pill shadow-sm">${windowDisplay}</div>`;
               container.appendChild(card);
             });
           }
         }
 
-        // Yangi chiptalarni e’lon qilish
-        const unannounced = tickets.filter(t => !lastAnnouncedIds.has(t.id));
-        if (unannounced.length) {
-          announceTickets(unannounced);
+        // Boshlang'ich yuklashda faqat ro'yxatga olamiz, keyingi yangi chiptalarni e'lon qilamiz
+        if (isFirstFetch) {
+          tickets.forEach(t => lastAnnouncedIds.add(String(t.id || t.ticket_number)));
+          isFirstFetch = false;
+        } else {
+          const unannounced = tickets.filter(t => !lastAnnouncedIds.has(String(t.id || t.ticket_number)));
+          if (unannounced.length) {
+            announceTickets(unannounced);
+          }
         }
+      })
+      .catch(err => {
+        console.error("Navbatlarni olishda xatolik:", err);
       });
   }
 
-  // Loader tugashi
-  function checkLoaded() {
-    if (video.readyState >= 3) {
-      loader.style.display = "none";
-    } else {
-      setTimeout(checkLoaded, 300);
+  // Loader ni yopish (hech qachon sahifani to'sib qolmasligi uchun)
+  function hideLoader() {
+    if (loader) {
+      loader.style.opacity = "0";
+      setTimeout(() => { loader.style.display = "none"; }, 400);
     }
   }
 
+  if (video) {
+    video.addEventListener("loadeddata", hideLoader);
+    video.addEventListener("error", hideLoader);
+  }
+  setTimeout(hideLoader, 1200);
+
   document.addEventListener("DOMContentLoaded", () => {
     updateServingTickets();
-    checkLoaded();
     setInterval(updateServingTickets, 3000);
   });
 </script>
