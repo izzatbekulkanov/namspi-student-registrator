@@ -1,119 +1,285 @@
 {% extends 'members/staff_managment.html' %}
 {% load static %}
 
-{% block title %}Hodim boshqaruvi{% endblock %}
+{% block title %}Yangi xodim qo‘shish — Xodimlar boshqaruvi{% endblock %}
 
 {% block content %}
-<div class="col-md-9 col-lg-10 py-4 border-end shadow-sm min-vh-100 rounded-end">
-    <div class="container py-4">
-        <h4 class="fw-semibold mb-4">Hodim qo‘shish</h4>
+<style>
+  .form-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .input-group-text {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #64748b;
+  }
+  .form-control, .form-select {
+    border-color: #cbd5e1;
+    padding: 0.55rem 0.85rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  .avatar-initial {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+  }
+  .password-toggle-btn {
+    cursor: pointer;
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+</style>
 
-        <form method="POST" id="staffForm">
-            {% csrf_token %}
-            <div class="row g-2">
-
-                <!-- FIO -->
-                <div class="col-md-4">
-                    <label class="form-label">Familiya *</label>
-                    <input type="text" name="second_name" class="form-control form-control-sm required-field" placeholder="Familiya">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Ism *</label>
-                    <input type="text" name="first_name" class="form-control form-control-sm required-field" placeholder="Ism">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Otasining ismi</label>
-                    <input type="text" name="third_name" class="form-control form-control-sm" placeholder="Otasining ismi">
-                </div>
-
-                <!-- Auth -->
-                <div class="col-md-4">
-                    <label class="form-label">Username *</label>
-                    <input type="text" name="username" id="usernameInput" class="form-control form-control-sm required-field" placeholder="Username">
-                    <div id="usernameFeedback" class="form-text small text-danger"></div>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Parol *</label>
-                    <input type="password" name="password" id="password" class="form-control form-control-sm required-field" placeholder="Parol">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Parolni tasdiqlang *</label>
-                    <input type="password" id="confirm_password"  name="confirm_password" class="form-control form-control-sm required-field" placeholder="Parolni tasdiqlang">
-                    <div id="passwordFeedback" class="form-text small text-danger"></div>
-                </div>
-
-                <!-- Info -->
-                <div class="col-md-4">
-                    <label class="form-label">Jinsi *</label>
-                    <select name="gender" class="form-select form-select-sm required-field">
-                        <option value="">Tanlang</option>
-                        <option value="Erkak">Erkak</option>
-                        <option value="Ayol">Ayol</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Bo‘lim *</label>
-                    <input type="text" name="department_name" class="form-control form-control-sm required-field" placeholder="Bo‘lim nomi">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Lavozim *</label>
-                    <input type="text" name="staff_position" class="form-control form-control-sm required-field" placeholder="Lavozim">
-                </div>
-
-                <!-- Rol -->
-                <div class="col-md-4">
-                    <label class="form-label">Foydalanuvchi roli *</label>
-                    <select name="user_role" id="user_role" class="form-select form-select-sm required-field">
-                        <option value="">Tanlang</option>
-                        <option value="operator">Operator</option>
-                        <option value="leader">Rahbar</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary btn-sm px-4">Saqlash</button>
-            </div>
-        </form>
-
-        <hr class="my-4">
-
-        <h5 class="fw-semibold mb-3">Hodimlar ro‘yxati</h5>
-        <div class="table-responsive">
-            <table class="table table-sm table-striped">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>F.I.O</th>
-                        <th>Username</th>
-                        <th>Bo‘lim</th>
-                        <th>Lavozim</th>
-                        <th>Rol</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ user.full_name }}</td>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.department_name }}</td>
-                        <td>{{ user.staff_position }}</td>
-                        <td>
-                            {% if user.is_superuser %}Admin{% elif user.is_leader %}Rahbar{% elif user.is_operator %}Operator{% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">Hozircha hodimlar mavjud emas</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
+<div class="container-fluid px-0">
+  <!-- Sarlavha paneli -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-person-plus-fill text-primary"></i> Yangi xodim qo‘shish
+      </h4>
+      <p class="text-secondary small mb-0">Tizimga yangi operator, rahbar yoki administrator foydalanuvchisini ro‘yxatdan o‘tkazish</p>
     </div>
+    <div>
+      <a href="{% url 'staff-list' %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+        <i class="bi bi-people-fill me-1"></i> Barcha xodimlar ro‘yxati
+      </a>
+    </div>
+  </div>
+
+  <!-- Form Kartasi -->
+  <div class="card-dashboard p-4 mb-4">
+    <form method="POST" id="staffForm" novalidate>
+      {% csrf_token %}
+
+      <!-- 1-BO‘LIM: SHAXSIY MA'LUMOTLAR -->
+      <div class="mb-4">
+        <div class="form-section-title">
+          <i class="bi bi-person-badge text-primary"></i> 1. Shaxsiy ma'lumotlar
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Familiya <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" name="second_name" class="form-control required-field" placeholder="Masalan: Ulkanov" required>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Ism <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" name="first_name" class="form-control required-field" placeholder="Masalan: Izzatbek" required>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Otasining ismi</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" name="third_name" class="form-control" placeholder="Otasining ismi">
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Jinsi <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-gender-ambiguous"></i></span>
+              <select name="gender" class="form-select required-field" required>
+                <option value="">Jinsini tanlang</option>
+                <option value="Erkak">Erkak</option>
+                <option value="Ayol">Ayol</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-BO‘LIM: ISH O‘RNI VA ROLI -->
+      <div class="mb-4">
+        <div class="form-section-title">
+          <i class="bi bi-briefcase text-primary"></i> 2. Ish o‘rni va Tizimdagi roli
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Bo‘lim / Sektor <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-building"></i></span>
+              <input type="text" name="department_name" class="form-control required-field" placeholder="Masalan: Axborot texnologiyalari" required>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Lavozim <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person-workspace"></i></span>
+              <input type="text" name="staff_position" class="form-control required-field" placeholder="Masalan: Katta mutaxassis" required>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Foydalanuvchi roli <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+              <select name="user_role" id="user_role" class="form-select required-field" required>
+                <option value="">Rolni tanlang</option>
+                <option value="operator" selected>🟢 Operator (Navbat qabul qiluvchi)</option>
+                <option value="leader">🔵 Rahbar (Monitoring va hisobotlar)</option>
+                <option value="admin">🔴 Admin (To‘liq boshqaruv)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-BO‘LIM: TIZIMGA KIRISH (AUTH) -->
+      <div class="mb-4">
+        <div class="form-section-title">
+          <i class="bi bi-key text-primary"></i> 3. Tizimga kirish hisobi va Parol
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Username (Login) <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">@</span>
+              <input type="text" name="username" id="usernameInput" class="form-control required-field" placeholder="Masalan: i_ulkanov" autocomplete="off" required>
+            </div>
+            <div id="usernameFeedback" class="form-text small mt-1"></div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Parol <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" name="password" id="password" class="form-control required-field" placeholder="Kamida 6 ta belgi" required>
+              <button class="btn btn-outline-secondary password-toggle-btn" type="button" onclick="togglePasswordVisibility('password', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small text-secondary">Parolni tasdiqlang <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+              <input type="password" id="confirm_password" name="confirm_password" class="form-control required-field" placeholder="Parolni qayta kiriting" required>
+              <button class="btn btn-outline-secondary password-toggle-btn" type="button" onclick="togglePasswordVisibility('confirm_password', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            <div id="passwordFeedback" class="form-text small mt-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAQLASH TUGMALARI -->
+      <div class="d-flex align-items-center gap-2 pt-2 border-top">
+        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold rounded-3 shadow-sm" id="submitBtn">
+          <i class="bi bi-check-circle-fill me-1"></i> Xodimni saqlash
+        </button>
+        <button type="reset" class="btn btn-outline-secondary px-3 py-2 rounded-3" onclick="resetFeedback()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Tozalash
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- XODIMLAR JADVALI KARTASI -->
+  <div class="card-dashboard p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+          <i class="bi bi-people text-secondary"></i> Yaqinda qo‘shilgan xodimlar
+        </h5>
+        <span class="text-muted small">Jami ro‘yxatdan o‘tgan xodimlar: {{ users|length }} ta</span>
+      </div>
+      <div>
+        <input type="text" id="tableSearchInput" class="form-control form-control-sm rounded-pill" placeholder="🔍 Xodimlarni izlash..." style="width: 220px;">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="staffTable">
+        <thead class="table-light">
+          <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            <th>#</th>
+            <th>Xodim (F.I.O)</th>
+            <th>Username</th>
+            <th>Bo‘lim</th>
+            <th>Lavozim</th>
+            <th>Roli</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="avatar-initial">
+                  {{ user.first_name|first|default:user.username|first }}{{ user.last_name|first|default:"" }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ user.full_name|default:user.username }}</div>
+                  <small class="text-muted">{{ user.gender|default:"" }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-secondary bg-opacity-10 text-dark font-monospace border px-2 py-1">
+                @{{ user.username }}
+              </span>
+            </td>
+            <td><div class="text-secondary fw-semibold small">{{ user.department_name|default:"—" }}</div></td>
+            <td><div class="text-muted small">{{ user.staff_position|default:"—" }}</div></td>
+            <td>
+              {% if user.is_superuser %}
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill">
+                  <i class="bi bi-shield-fill-check"></i> Admin
+                </span>
+              {% elif user.is_leader %}
+                <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1 rounded-pill">
+                  <i class="bi bi-person-workspace"></i> Rahbar
+                </span>
+              {% elif user.is_operator %}
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 rounded-pill">
+                  <i class="bi bi-headset"></i> Operator
+                </span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1 rounded-pill">
+                  Foydalanuvchi
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              <div class="fs-2 mb-1">👥</div>
+              <h6>Hozircha xodimlar mavjud emas</h6>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -121,98 +287,178 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let usernameAvailable = true;
+  let usernameAvailable = true;
 
-    document.getElementById("usernameInput").addEventListener("input", function () {
-        const username = this.value.trim();
-        const feedback = document.getElementById("usernameFeedback");
+  // Parol ko‘rinishini o‘zgartirish (Show/Hide password)
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector("i");
+    if (!input || !icon) return;
 
-        if (username.length < 3) {
-            feedback.textContent = "Kamida 3 harfdan iborat bo‘lishi kerak";
+    if (input.type === "password") {
+      input.type = "text";
+      icon.className = "bi bi-eye-slash";
+    } else {
+      input.type = "password";
+      icon.className = "bi bi-eye";
+    }
+  }
+
+  function resetFeedback() {
+    document.getElementById("usernameFeedback").textContent = "";
+    document.getElementById("passwordFeedback").textContent = "";
+  }
+
+  // Username jonli tekshiruv (AJAX)
+  const usernameInput = document.getElementById("usernameInput");
+  const usernameFeedback = document.getElementById("usernameFeedback");
+
+  if (usernameInput) {
+    usernameInput.addEventListener("input", function () {
+      const username = this.value.trim();
+
+      if (!username) {
+        usernameFeedback.textContent = "";
+        usernameAvailable = true;
+        return;
+      }
+
+      if (username.length < 3) {
+        usernameFeedback.className = "form-text small text-warning";
+        usernameFeedback.innerHTML = "⚠️ Kamida 3 ta belgidan iborat bo‘lishi kerak";
+        usernameAvailable = false;
+        return;
+      }
+
+      fetch(`/staff/check-username/?username=${encodeURIComponent(username)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.available) {
+            usernameFeedback.className = "form-text small text-success";
+            usernameFeedback.innerHTML = "✅ Username bo‘sh, ishlatish mumkin";
+            usernameAvailable = true;
+          } else {
+            usernameFeedback.className = "form-text small text-danger";
+            usernameFeedback.innerHTML = "❌ Ushbu username allaqachon band!";
             usernameAvailable = false;
-            return;
-        }
-
-        fetch(`/staff/check-username/?username=${username}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.available) {
-                    feedback.textContent = "";
-                    usernameAvailable = true;
-                } else {
-                    feedback.textContent = "❌ Username allaqachon band!";
-                    usernameAvailable = false;
-                }
-            });
-    });
-
-    document.getElementById("staffForm").addEventListener("submit", function (e) {
-        const requiredFields = document.querySelectorAll(".required-field");
-        let allFilled = true;
-
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                allFilled = false;
-            }
+          }
+        })
+        .catch(() => {
+          usernameAvailable = true;
         });
-
-        const password = document.getElementById("password").value.trim();
-        const confirm = document.getElementById("confirm_password").value.trim();
-        const passwordMatch = password === confirm;
-
-        if (!allFilled) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Iltimos, barcha majburiy maydonlarni to‘ldiring!",
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 3000
-            });
-            return;
-        }
-
-        if (!usernameAvailable) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "error",
-                title: "Ushbu username band!",
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 3000
-            });
-            return;
-        }
-
-        if (!passwordMatch) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "error",
-                title: "Parollar mos emas!",
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 3000
-            });
-            return;
-        }
     });
-</script>
+  }
 
-{% if messages %}
-<script>
-    {% for message in messages %}
-    Swal.fire({
-        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
-        title: "{{ message|escapejs }}",
+  // Parol mosligini jonli tekshirish
+  const passwordInput = document.getElementById("password");
+  const confirmInput = document.getElementById("confirm_password");
+  const passwordFeedback = document.getElementById("passwordFeedback");
+
+  function checkPasswordMatch() {
+    const p1 = passwordInput.value;
+    const p2 = confirmInput.value;
+
+    if (!p2) {
+      passwordFeedback.textContent = "";
+      return;
+    }
+
+    if (p1 === p2) {
+      passwordFeedback.className = "form-text small text-success";
+      passwordFeedback.innerHTML = "✅ Parollar mos keldi";
+    } else {
+      passwordFeedback.className = "form-text small text-danger";
+      passwordFeedback.innerHTML = "❌ Parollar bir-biriga mos emas!";
+    }
+  }
+
+  if (passwordInput && confirmInput) {
+    passwordInput.addEventListener("input", checkPasswordMatch);
+    confirmInput.addEventListener("input", checkPasswordMatch);
+  }
+
+  // Form submit validatsiyasi
+  document.getElementById("staffForm").addEventListener("submit", function (e) {
+    const requiredFields = document.querySelectorAll(".required-field");
+    let allFilled = true;
+
+    requiredFields.forEach(field => {
+      if (!field.value.trim()) {
+        allFilled = false;
+        field.classList.add("is-invalid");
+      } else {
+        field.classList.remove("is-invalid");
+      }
+    });
+
+    if (!allFilled) {
+      e.preventDefault();
+      Swal.fire({
+        icon: "warning",
+        title: "Iltimos, barcha majburiy maydonlarni to‘ldiring!",
         toast: true,
         position: "top-end",
         showConfirmButton: false,
         timer: 3000
+      });
+      return;
+    }
+
+    if (!usernameAvailable) {
+      e.preventDefault();
+      Swal.fire({
+        icon: "error",
+        title: "Kiritilgan username band!",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000
+      });
+      return;
+    }
+
+    const p1 = passwordInput.value.trim();
+    const p2 = confirmInput.value.trim();
+    if (p1 !== p2) {
+      e.preventDefault();
+      Swal.fire({
+        icon: "error",
+        title: "Parollar bir-biriga mos emas!",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000
+      });
+      return;
+    }
+  });
+
+  // Jadvaldan qidiruv filtri
+  const tableSearchInput = document.getElementById("tableSearchInput");
+  if (tableSearchInput) {
+    tableSearchInput.addEventListener("input", function() {
+      const q = this.value.toLowerCase();
+      const rows = document.querySelectorAll("#staffTable tbody tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? "" : "none";
+      });
     });
-    {% endfor %}
+  }
+</script>
+
+{% if messages %}
+<script>
+  {% for message in messages %}
+  Swal.fire({
+    icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+    title: "{{ message|escapejs }}",
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000
+  });
+  {% endfor %}
 </script>
 {% endif %}
 {% endblock %}

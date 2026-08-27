@@ -1,90 +1,129 @@
 {% extends 'members/staff_managment.html' %}
 {% load static %}
 
-{% block title %}Xizmatlarni biriktirish{% endblock %}
+{% block title %}Xizmatlarni biriktirish — Xodimlar boshqaruvi{% endblock %}
 
 {% block content %}
-<div class="col-md-9 col-lg-10 py-4 border-end shadow-sm min-vh-100 rounded-end">
-  <div class="container">
-    <h4 class="fw-semibold text-center mb-4">Foydalanuvchilarga xizmatlarni biriktirish</h4>
+<div class="container-fluid px-0">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-diagram-3-fill text-primary"></i> Xizmatlarni biriktirish
+      </h4>
+      <p class="text-secondary small mb-0">Operator xodimlariga tegishli xizmat turlarini biriktirish va sozlash</p>
+    </div>
+  </div>
 
+  <div class="card-dashboard p-4 mb-4">
     <!-- Tanlash formasi -->
     <form method="get" class="row g-3 align-items-end mb-4">
       <div class="col-md-6">
-        <label class="form-label">Foydalanuvchi</label>
+        <label class="form-label fw-semibold text-secondary small">Operator / Xodimni tanlang</label>
         <select name="user_id" class="form-select" onchange="this.form.submit()">
-          <option value="">Tanlang</option>
+          <option value="">-- Xodimni tanlang --</option>
           {% for user in users %}
-          <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>{{ user.full_name }}</option>
+          <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
+            {{ user.full_name }} (@{{ user.username }}) - {{ user.department_name|default:"Bo‘limsiz" }}
+          </option>
           {% endfor %}
         </select>
       </div>
     </form>
 
     {% if selected_user %}
+    <div class="p-3 bg-light rounded-3 border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar-initial bg-primary text-white" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+          {{ selected_user.first_name|first|default:selected_user.username|first }}
+        </div>
+        <div>
+          <h6 class="fw-bold mb-0 text-dark">{{ selected_user.full_name }}</h6>
+          <small class="text-muted">@{{ selected_user.username }} &bull; {{ selected_user.staff_position|default:"Operator" }}</small>
+        </div>
+      </div>
+      <div>
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill">
+          Biriktirilgan xizmatlar: {{ assignments|length }} ta
+        </span>
+      </div>
+    </div>
+
     <form method="POST" id="assignForm">
       {% csrf_token %}
       <input type="hidden" name="user" value="{{ selected_user.id }}">
 
-      <div class="mb-3">
-        <label class="form-label">Xizmat bo‘limi orqali filtr</label>
-        <select class="form-select" id="sectionFilter">
-          <option value="">-- Barchasi --</option>
-          {% for sec in sections %}
-          <option value="section-{{ sec.id }}">{{ sec.name }}</option>
-          {% endfor %}
-        </select>
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h6 class="fw-bold text-dark mb-0">Mavjud xizmatlarni tanlang:</h6>
+        <div style="min-width: 250px;">
+          <select class="form-select form-select-sm" id="sectionFilter">
+            <option value="">-- Barcha bo‘limlar bo‘yicha --</option>
+            {% for sec in sections %}
+            <option value="section-{{ sec.id }}">{{ sec.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
       </div>
 
-      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3" id="subserviceList">
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4" id="subserviceList">
         {% for ss in available_subservices %}
         <div class="col subservice-item section-{{ ss.section.id }}">
-          <div class="form-check border rounded p-3 h-100">
-            <input class="form-check-input d-none" type="checkbox" name="subservices" value="{{ ss.id }}" id="sub-{{ ss.id }}">
-            <label class="form-check-label w-100 d-block p-2 border rounded" for="sub-{{ ss.id }}">
-              <strong>{{ ss.name }}</strong><br>
-              <small class="text-muted">({{ ss.section.name }})</small>
+          <div class="form-check border rounded-3 p-3 h-100 bg-white shadow-sm" style="transition: all 0.2s ease;">
+            <input class="form-check-input" type="checkbox" name="subservices" value="{{ ss.id }}" id="sub-{{ ss.id }}">
+            <label class="form-check-label w-100 ms-2" for="sub-{{ ss.id }}" style="cursor: pointer;">
+              <strong class="text-dark d-block">{{ ss.name }}</strong>
+              <small class="text-muted"><i class="bi bi-folder2 me-1"></i>{{ ss.section.name }}</small>
             </label>
           </div>
         </div>
         {% empty %}
-        <p class="text-muted">Biriktirilmagan xizmatlar mavjud emas.</p>
+        <div class="col-12 text-center py-4 text-muted">
+          <p class="mb-0">Barcha xizmatlar allaqachon biriktirilgan yoki mavjud emas.</p>
+        </div>
         {% endfor %}
       </div>
 
-      <div class="mt-4 text-end">
-        <button type="submit" class="btn btn-primary">Biriktirish</button>
+      {% if available_subservices %}
+      <div class="text-end">
+        <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-semibold shadow-sm">
+          <i class="bi bi-check2-circle me-1"></i> Tanlangan xizmatlarni biriktirish
+        </button>
       </div>
+      {% endif %}
     </form>
 
     <hr class="my-4">
-    <h5 class="mb-3">Biriktirilgan xizmatlar</h5>
+
+    <h6 class="fw-bold text-dark mb-3">Ushbu xodimga biriktirilgan xizmatlar:</h6>
     <div class="table-responsive">
-      <table class="table table-bordered table-sm">
+      <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
-          <tr>
+          <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
             <th>#</th>
-            <th>Xizmat</th>
-            <th>Bo‘lim</th>
-            <th>Amal</th>
+            <th>Xizmat nomi</th>
+            <th>Tegishli bo‘lim</th>
+            <th class="text-end">Amal</th>
           </tr>
         </thead>
         <tbody>
           {% for a in assignments %}
           <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ a.service.name }}</td>
-            <td>{{ a.service.section.name }}</td>
-            <td>
+            <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+            <td class="fw-semibold text-dark">{{ a.service.name }}</td>
+            <td><span class="badge bg-light text-secondary border">{{ a.service.section.name }}</span></td>
+            <td class="text-end">
               <form method="POST" action="{% url 'unassign-subservice' a.id %}" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="user" value="{{ selected_user.id }}">
-                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Olib tashlashni xohlaysizmi?')">Olib tashlash</button>
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" onclick="return confirm('Ushbu xizmatni xodimdan ajratishni xohlaysizmi?')">
+                  <i class="bi bi-x-circle me-1"></i> Ajratish
+                </button>
               </form>
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="text-center text-muted">Hozircha hech qanday biriktirish mavjud emas</td></tr>
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">Hozircha hech qanday xizmat biriktirilmagan</td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -97,14 +136,7 @@
 {% block script %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  document.querySelectorAll(".form-check-input").forEach(input => {
-    input.addEventListener("change", function() {
-      const label = input.nextElementSibling;
-      label.classList.toggle("border-success", input.checked);
-    });
-  });
-
-  document.getElementById("sectionFilter").addEventListener("change", function () {
+  document.getElementById("sectionFilter")?.addEventListener("change", function () {
     const selected = this.value;
     document.querySelectorAll(".subservice-item").forEach(item => {
       if (!selected || item.classList.contains(selected)) {
@@ -118,9 +150,11 @@
   {% if messages %}
   {% for message in messages %}
     Swal.fire({
-      icon: "success",
+      icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
       title: "{{ message|escapejs }}",
-      timer: 2000,
+      toast: true,
+      position: "top-end",
+      timer: 3000,
       showConfirmButton: false
     });
   {% endfor %}
