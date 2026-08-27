@@ -2,7 +2,7 @@
 {% with current=request.resolver_match.url_name %}
 <aside class="sidebar-pro d-flex flex-column h-100 bg-white">
   <!-- 🌟 Brand Header -->
-  <div class="sidebar-brand p-3 d-flex align-items-center justify-content-between border-bottom">
+  <div class="sidebar-brand p-3 d-flex align-items-center justify-content-start border-bottom">
     <a href="{% url 'service-dashboard' %}" class="d-flex align-items-center gap-2 text-decoration-none overflow-hidden">
       <div class="brand-logo-circle flex-shrink-0">
         <img src="{% static 'img/logo.png' %}" alt="Logo" width="32" height="32" class="img-fluid">
@@ -12,11 +12,6 @@
         <small class="text-muted text-nowrap" style="font-size: 0.68rem; letter-spacing: 0.5px;">TIZIM BOSHQARUVI</small>
       </div>
     </a>
-    
-    <!-- 🎛️ Sidebar Collapse / Expand Toggle Button -->
-    <button class="btn btn-sm btn-light border rounded-3 p-1 d-none d-lg-flex align-items-center justify-content-center sidebar-toggle-btn" type="button" onclick="toggleSidebarCollapse()" title="Yon panelni yig‘ish / yoyish" style="width: 28px; height: 28px;">
-      <i class="bi bi-layout-sidebar-inset text-secondary sidebar-toggle-icon"></i>
-    </button>
   </div>
 
   <!-- 🧭 Navigatsiya Menyusi -->
