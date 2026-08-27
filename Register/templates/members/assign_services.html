@@ -15,23 +15,39 @@
   </div>
 
   <div class="card-dashboard p-3 p-md-4 mb-4">
-    <!-- Tanlash formasi -->
-    <form method="get" class="row g-3 align-items-end mb-4">
+    <!-- Tanlash formasi (Custom Dropdown) -->
+    <div class="row g-3 align-items-end mb-4">
       <div class="col-md-6">
         <label class="form-label fw-semibold text-secondary small">Operator / Xodimni tanlang</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-person"></i></span>
-          <select name="user_id" class="form-select" onchange="this.form.submit()">
-            <option value="">-- Xodimni tanlang --</option>
+        <div class="dropdown custom-dropdown-select">
+          <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between text-truncate dropdown-toggle py-2" type="button" id="userSelectDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="d-flex align-items-center gap-2 text-truncate">
+              <i class="bi bi-person text-primary"></i>
+              {% if selected_user %}
+                <span class="fw-bold">{{ selected_user.full_name }}</span> (@{{ selected_user.username }})
+              {% else %}
+                <span class="text-muted">-- Xodimni tanlang --</span>
+              {% endif %}
+            </span>
+          </button>
+          <ul class="dropdown-menu w-100 shadow-sm p-1" aria-labelledby="userSelectDropdown" style="max-height: 320px; overflow-y: auto;">
             {% for user in users %}
-            <option value="{{ user.id }}" {% if selected_user and user.id == selected_user.id %}selected{% endif %}>
-              {{ user.full_name }} (@{{ user.username }}) - {{ user.department_name|default:"Bo‘limsiz" }}
-            </option>
+            <li>
+              <a class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if selected_user and user.id == selected_user.id %}active{% endif %}" href="?user_id={{ user.id }}">
+                <div>
+                  <div class="fw-bold">{{ user.full_name }}</div>
+                  <small class="{% if selected_user and user.id == selected_user.id %}text-white-50{% else %}text-muted{% endif %}">@{{ user.username }} &bull; {{ user.department_name|default:"Bo‘limsiz" }}</small>
+                </div>
+                {% if selected_user and user.id == selected_user.id %}
+                  <i class="bi bi-check2 text-white fs-5"></i>
+                {% endif %}
+              </a>
+            </li>
             {% endfor %}
-          </select>
+          </ul>
         </div>
       </div>
-    </form>
+    </div>
 
     {% if selected_user %}
     <div class="p-3 bg-light border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" style="border-radius: var(--radius-sm);">
@@ -57,13 +73,31 @@
 
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h6 class="fw-bold text-dark mb-0">Mavjud xizmatlarni tanlang:</h6>
-        <div style="min-width: 250px;">
-          <select class="form-select form-select-sm" id="sectionFilter">
-            <option value="">-- Barcha bo‘limlar bo‘yicha --</option>
+        
+        <!-- 🎛️ Custom Section Filter Dropdown -->
+        <div class="dropdown custom-dropdown-select" style="min-width: 280px;">
+          <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between dropdown-toggle py-1 px-3" type="button" id="sectionFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="selectedSectionText" class="d-flex align-items-center gap-2 small fw-medium">
+              <i class="bi bi-folder2 text-primary"></i> Barcha bo‘limlar bo‘yicha
+            </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end w-100 shadow-sm p-1" aria-labelledby="sectionFilterDropdown" style="max-height: 280px; overflow-y: auto;">
+            <li>
+              <a class="dropdown-item d-flex align-items-center justify-content-between section-filter-option active" href="javascript:void(0)" data-value="">
+                <span><i class="bi bi-folder2 me-2 text-primary"></i> Barcha bo‘limlar bo‘yicha</span>
+                <i class="bi bi-check2 check-icon"></i>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
             {% for sec in sections %}
-            <option value="section-{{ sec.id }}">{{ sec.name }}</option>
+            <li>
+              <a class="dropdown-item d-flex align-items-center justify-content-between section-filter-option" href="javascript:void(0)" data-value="section-{{ sec.id }}">
+                <span><i class="bi bi-folder me-2 text-secondary"></i> {{ sec.name }}</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
             {% endfor %}
-          </select>
+          </ul>
         </div>
       </div>
 
@@ -138,14 +172,32 @@
 
 {% block script %}
 <script>
-  document.getElementById("sectionFilter")?.addEventListener("change", function () {
-    const selected = this.value;
-    document.querySelectorAll(".subservice-item").forEach(item => {
-      if (!selected || item.classList.contains(selected)) {
-        item.classList.remove("d-none");
-      } else {
-        item.classList.add("d-none");
-      }
+  // Bo‘lim bo‘yicha custom dropdown filter
+  document.querySelectorAll(".section-filter-option").forEach(item => {
+    item.addEventListener("click", function () {
+      const selected = this.getAttribute("data-value");
+      const selectedText = this.querySelector("span").innerHTML;
+      
+      // Update toggle button text
+      const labelEl = document.getElementById("selectedSectionText");
+      if (labelEl) labelEl.innerHTML = selectedText;
+
+      // Update active states
+      document.querySelectorAll(".section-filter-option").forEach(el => {
+        el.classList.remove("active");
+        el.querySelector(".check-icon")?.classList.add("d-none");
+      });
+      this.classList.add("active");
+      this.querySelector(".check-icon")?.classList.remove("d-none");
+
+      // Filter subservices list
+      document.querySelectorAll(".subservice-item").forEach(subItem => {
+        if (!selected || subItem.classList.contains(selected)) {
+          subItem.classList.remove("d-none");
+        } else {
+          subItem.classList.add("d-none");
+        }
+      });
     });
   });
 </script>

@@ -18,21 +18,49 @@
   </div>
 
   <div class="card-dashboard p-3 p-md-4">
-    <!-- Qidiruv paneli -->
+    <!-- Qidiruv va Custom Dropdown Filter Paneli -->
     <div class="row g-3 mb-4">
-      <div class="col-md-4">
+      <div class="col-md-5">
         <div class="input-group">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
           <input type="text" id="staffFilterInput" class="form-control" placeholder="F.I.Sh yoki username bo‘yicha qidiruv...">
         </div>
       </div>
-      <div class="col-md-3">
-        <select id="roleFilterSelect" class="form-select">
-          <option value="">-- Barcha rollar --</option>
-          <option value="Admin">Admin</option>
-          <option value="Rahbar">Rahbar</option>
-          <option value="Operator">Operator</option>
-        </select>
+      <div class="col-md-4">
+        <!-- 🎛️ Custom Role Filter Dropdown -->
+        <div class="dropdown custom-dropdown-select">
+          <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between dropdown-toggle py-2" type="button" id="roleDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="selectedRoleLabel" class="d-flex align-items-center gap-2 small fw-medium">
+              <i class="bi bi-funnel text-primary"></i> Barcha rollar
+            </span>
+          </button>
+          <ul class="dropdown-menu w-100 shadow-sm p-1" aria-labelledby="roleDropdownBtn">
+            <li>
+              <a class="dropdown-item role-dropdown-option active d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="">
+                <span><i class="bi bi-people me-2"></i> Barcha rollar</span>
+                <i class="bi bi-check2 check-icon"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item role-dropdown-option d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="Admin">
+                <span><i class="bi bi-shield-lock me-2 text-danger"></i> Admin</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item role-dropdown-option d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="Rahbar">
+                <span><i class="bi bi-person-badge me-2 text-info"></i> Rahbar</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item role-dropdown-option d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="Operator">
+                <span><i class="bi bi-headset me-2 text-primary"></i> Operator</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
 
@@ -104,11 +132,11 @@
 {% block script %}
 <script>
   const searchInput = document.getElementById("staffFilterInput");
-  const roleSelect = document.getElementById("roleFilterSelect");
+  let selectedRoleFilter = "";
 
   function filterStaff() {
-    const searchVal = searchInput.value.toLowerCase();
-    const roleVal = roleSelect.value.toLowerCase();
+    const searchVal = searchInput?.value.toLowerCase() || "";
+    const roleVal = selectedRoleFilter.toLowerCase();
 
     document.querySelectorAll(".staff-table-row").forEach(row => {
       const text = row.textContent.toLowerCase();
@@ -121,6 +149,27 @@
   }
 
   searchInput?.addEventListener("input", filterStaff);
-  roleSelect?.addEventListener("change", filterStaff);
+
+  // Custom Dropdown Option Handler
+  document.querySelectorAll(".role-dropdown-option").forEach(item => {
+    item.addEventListener("click", function() {
+      selectedRoleFilter = this.getAttribute("data-value");
+      const selectedHtml = this.querySelector("span").innerHTML;
+
+      // Update button text
+      const labelEl = document.getElementById("selectedRoleLabel");
+      if (labelEl) labelEl.innerHTML = selectedHtml;
+
+      // Update active states
+      document.querySelectorAll(".role-dropdown-option").forEach(el => {
+        el.classList.remove("active");
+        el.querySelector(".check-icon")?.classList.add("d-none");
+      });
+      this.classList.add("active");
+      this.querySelector(".check-icon")?.classList.remove("d-none");
+
+      filterStaff();
+    });
+  });
 </script>
 {% endblock %}
