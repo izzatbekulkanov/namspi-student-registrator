@@ -125,8 +125,8 @@
             {{ request.user.role_title }}
           </span>
         </div>
-        <h2 class="fw-bold text-white mb-1" id="greetingHeading">
-          Xush kelibsiz, {{ request.user.full_name|default:request.user.username }}!
+        <h2 class="fw-bold text-white mb-1">
+          <span id="greetingPrefix">Xush kelibsiz</span>, {{ request.user.full_name|default:request.user.username }}!
         </h2>
         <p class="text-white-50 mb-0">
           Namangan Davlat Pedagogika Instituti — Registrator elektron navbat boshqaruv markazi.
@@ -359,15 +359,12 @@
   // Kun vaqtiga qarab salomlashish
   document.addEventListener("DOMContentLoaded", function () {
     const hour = new Date().getHours();
-    const heading = document.getElementById("greetingHeading");
-    if (heading) {
-      let greeting = "Xush kelibsiz";
-      if (hour >= 5 && hour < 11) greeting = "Xayrli tong";
-      else if (hour >= 11 && hour < 17) greeting = "Xayrli kun";
-      else if (hour >= 17 && hour < 22) greeting = "Xayrli kech";
-      
-      const userName = "{{ request.user.full_name|default:request.user.username }}";
-      heading.textContent = `${greeting}, ${userName}!`;
+    const prefix = document.getElementById("greetingPrefix");
+    if (prefix) {
+      if (hour >= 5 && hour < 11) prefix.textContent = "Xayrli tong";
+      else if (hour >= 11 && hour < 17) prefix.textContent = "Xayrli kun";
+      else if (hour >= 17 && hour < 22) prefix.textContent = "Xayrli kech";
+      else prefix.textContent = "Xush kelibsiz";
     }
   });
 </script>
