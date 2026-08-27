@@ -1,51 +1,161 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Operator Navbati{% endblock %}
+{% block title %}Operator Navbat Paneli{% endblock %}
 
 {% block content %}
 <style>
+  .operator-hero-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
   .table-card {
     background: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    padding: 1.5rem;
+    border-radius: 1.2rem;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1.25rem;
     height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
-  .scroll-box { max-height: 400px; overflow-y: auto; }
+  .table-card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+  .scroll-box {
+    max-height: 480px;
+    overflow-y: auto;
+  }
   .scroll-box::-webkit-scrollbar { width: 6px; }
   .scroll-box::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
-  .section-title { font-weight: 700; font-size: 1.3rem; color: #0d6efd; margin-bottom: 1rem; }
-  .timer-display { font-size: 1.4rem; font-weight: 700; color: #198754; }
-  .badge-result { padding: 0.25em 0.65em; border-radius: 0.4rem; font-size: 0.75rem; }
-  .badge-completed { background-color: #d4edda; color: #155724; }
-  .badge-rejected { background-color: #f8d7da; color: #721c24; }
+  
+  .section-title {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #f1f5f9;
+  }
+  .voice-badge-active {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  .voice-badge-muted {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
 </style>
 
-<div class="container py-4">
+<div class="container-fluid px-4 py-3">
+  <!-- 🌟 OPERATOR TOP INFO BAR -->
+  <div class="operator-hero-card p-3 mb-4">
+    <div class="row align-items-center g-3">
+      <!-- Operator ma'lumotlari -->
+      <div class="col-md-5 d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-primary bg-opacity-25 p-3 d-flex align-items-center justify-content-center border border-primary border-opacity-50" style="width: 54px; height: 54px;">
+          <i class="bi bi-person-badge-fill text-primary fs-3"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold mb-0 text-white">{{ request.user.full_name|default:request.user.username }}</h5>
+          <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+            <span class="badge {{ request.user.role_badge }} rounded-pill">{{ request.user.role_title }}</span>
+            {% if window_number %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 rounded-pill px-2 py-1">
+                <i class="bi bi-window-dock me-1"></i> Oyna #{{ window_number }}
+              </span>
+            {% else %}
+              <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 rounded-pill px-2 py-1">
+                <i class="bi bi-exclamation-triangle me-1"></i> Oyna belgilanmagan
+              </span>
+            {% endif %}
+            <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 rounded-pill px-2 py-1">
+              {{ profile.level|default:"🟢 Boshlovchi" }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistika va soat -->
+      <div class="col-md-4 text-md-center">
+        <div class="d-inline-flex gap-4 bg-white bg-opacity-10 px-3 py-2 rounded-3 border border-white border-opacity-10">
+          <div>
+            <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.7rem;">Bugun bajarildi</div>
+            <div class="fw-bold text-success fs-5 font-monospace" id="today-done-counter">{{ today_count }} ta</div>
+          </div>
+          <div class="border-start border-white border-opacity-10 ps-3">
+            <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.7rem;">Kutmoqda</div>
+            <div class="fw-bold text-warning fs-5 font-monospace" id="today-waiting-counter">{{ waiting_count }} ta</div>
+          </div>
+          <div class="border-start border-white border-opacity-10 ps-3">
+            <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.7rem;">Vaqt</div>
+            <div class="fw-bold text-white fs-5 font-monospace" id="operatorLiveClock">--:--:--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ovozli sozlamalar (Edge Madina) -->
+      <div class="col-md-3 text-md-end d-flex align-items-center justify-content-md-end gap-2">
+        <button type="button" class="btn btn-sm btn-outline-light d-flex align-items-center gap-1 rounded-pill px-3" id="toggleVoiceBtn" onclick="toggleVoiceMode()">
+          <i class="bi bi-volume-up-fill" id="voiceIcon"></i>
+          <span id="voiceStatusText">Madina: Yoqilgan</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 fw-semibold shadow-sm" onclick="testMadinaVoice()" title="Edge Madina ovozini sinash">
+          <i class="bi bi-play-fill text-primary"></i> Sinash
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 ASOSIY 3 TA PANEL -->
   <div class="row g-4">
-    <div class="col-md-4">
+    <!-- 1. Kutayotgan navbatlar -->
+    <div class="col-lg-4">
       <div class="table-card d-flex flex-column">
-        <div class="section-title">Kutayotganlar</div>
-        <div id="waiting-tickets-box">
+        <div class="section-title">
+          <span><i class="bi bi-people-fill text-primary me-2"></i>Kutayotganlar</span>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1" id="waiting-badge">
+            {{ waiting_count }} ta
+          </span>
+        </div>
+        <div id="waiting-tickets-box" class="flex-grow-1">
           {% include 'services/_waiting_tickets.html' %}
         </div>
       </div>
     </div>
 
-    <div class="col-md-4">
+    <!-- 2. Ayni paytda xizmat ko'rsatilmoqda -->
+    <div class="col-lg-4">
       <div class="table-card">
-        <div class="section-title">Xizmat ko‘rsatilmoqda</div>
+        <div class="section-title">
+          <span><i class="bi bi-lightning-charge-fill text-success me-2"></i>Xizmat ko‘rsatilmoqda</span>
+          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-1" id="serving-status-badge">
+            {% if serving_ticket %}Faol{% else %}Kutilmoqda{% endif %}
+          </span>
+        </div>
         <div id="serving-ticket-box">
           {% include 'services/_serving_ticket.html' %}
         </div>
       </div>
     </div>
 
-    <div class="col-md-4">
+    <!-- 3. Yakunlanganlar -->
+    <div class="col-lg-4">
       <div class="table-card d-flex flex-column">
-        <div class="section-title">Yakunlanganlar</div>
-        <div id="done-tickets-box">
+        <div class="section-title">
+          <span><i class="bi bi-check-circle-fill text-secondary me-2"></i>Yakunlanganlar</span>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-1" id="done-badge">
+            {{ today_count }} ta
+          </span>
+        </div>
+        <div id="done-tickets-box" class="flex-grow-1">
           {% include 'services/_done_tickets.html' %}
         </div>
       </div>
@@ -56,19 +166,265 @@
 
 {% block script %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-function refreshQueues() {
-  fetch("{% url 'ajax-waiting-tickets' %}").then(r => r.json()).then(data => {
-    document.getElementById("waiting-tickets-box").innerHTML = data.html;
+  // ==========================================
+  // 🔊 EDGE MADINA TTS & AUDIO ANNOUNCEMENT
+  // ==========================================
+  let voiceEnabled = localStorage.getItem("operator_voice_enabled") !== "false";
+  let currentServingId = "{{ serving_ticket.id|default:'' }}";
+  let timerIntervalId = null;
+
+  // Jonli soat
+  function updateOperatorClock() {
+    const el = document.getElementById("operatorLiveClock");
+    if (el) {
+      const now = new Date();
+      el.textContent = now.toLocaleTimeString('uz-UZ');
+    }
+  }
+  setInterval(updateOperatorClock, 1000);
+  updateOperatorClock();
+
+  // Ovoz holatini yangilash
+  function updateVoiceUI() {
+    const btn = document.getElementById("toggleVoiceBtn");
+    const icon = document.getElementById("voiceIcon");
+    const text = document.getElementById("voiceStatusText");
+    if (!btn || !icon || !text) return;
+
+    if (voiceEnabled) {
+      icon.className = "bi bi-volume-up-fill text-success";
+      text.textContent = "Madina: Yoqilgan";
+      btn.className = "btn btn-sm btn-outline-light d-flex align-items-center gap-1 rounded-pill px-3 voice-badge-active";
+    } else {
+      icon.className = "bi bi-volume-mute-fill text-danger";
+      text.textContent = "Ovoz: O‘chirilgan";
+      btn.className = "btn btn-sm btn-outline-light d-flex align-items-center gap-1 rounded-pill px-3 voice-badge-muted";
+    }
+  }
+
+  function toggleVoiceMode() {
+    voiceEnabled = !voiceEnabled;
+    localStorage.setItem("operator_voice_enabled", voiceEnabled);
+    updateVoiceUI();
+    
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: voiceEnabled ? 'success' : 'info',
+      title: voiceEnabled ? 'Ovozli e‘lon yoqildi' : 'Ovozli e‘lon o‘chirildi',
+      showConfirmButton: false,
+      timer: 1500
+    });
+  }
+
+  // MP3 Audio yordamida ketma-ket ijro (Fallback)
+  function playRecordedVoiceFallback(ticketNumber, windowNumber) {
+    const ticketNumStr = String(ticketNumber || "").padStart(4, '0');
+    const windowStr = windowNumber ? String(windowNumber) : "{{ window_number|default:'' }}";
+
+    const audioPaths = [];
+    audioPaths.push("{% static 'sound/ding-dong.mp3' %}");
+
+    // 🎵 Chipta raqamlari (0-9)
+    for (let ch of ticketNumStr) {
+      audioPaths.push(`{% static 'voice/' %}${ch}.mp3`);
+    }
+    audioPaths.push("{% static 'voice/inchi_raqam_iltimos.mp3' %}");
+
+    // 🎵 Oyna raqami
+    if (windowStr) {
+      for (let ch of windowStr) {
+        audioPaths.push(`{% static 'voice/' %}${ch}.mp3`);
+      }
+      audioPaths.push("{% static 'voice/inchi_oynaga_boring.mp3' %}");
+    }
+
+    function playSeq(paths) {
+      if (!paths || !paths.length) return;
+      const audio = new Audio(paths[0]);
+      audio.onended = () => playSeq(paths.slice(1));
+      audio.onerror = () => playSeq(paths.slice(1));
+      audio.play().catch(() => playSeq(paths.slice(1)));
+    }
+
+    playSeq(audioPaths);
+  }
+
+  // Microsoft Edge Madina Neural Voice orqali gapirish
+  function speakMadinaVoice(ticketNumber, windowNumber) {
+    if (!voiceEnabled) return;
+
+    const ticketNumStr = String(ticketNumber || "").padStart(4, '0');
+    const windowStr = windowNumber ? String(windowNumber) : "{{ window_number|default:'' }}";
+
+    // 1. Ding-dong yangraydi
+    const dingDong = new Audio("{% static 'sound/ding-dong.mp3' %}");
+    dingDong.play().catch(() => {});
+
+    // 2. Nutq matni
+    const spokenTicket = ticketNumStr.split('').join(' '); // "0 0 0 5"
+    let speechText = `${ticketNumStr} - raqamli navbat egasi, `;
+    if (windowStr) {
+      speechText += `${windowStr} - oynaga marhamat!`;
+    } else {
+      speechText += `xizmat oynasiga marhamat!`;
+    }
+
+    // 3. Web Speech API (Edge Madina)
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Oldingi nutqni to'xtatish
+
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        utterance.lang = 'uz-UZ';
+        utterance.rate = 0.92;
+        utterance.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        // Microsoft Madina Online (Natural) ovozini qidirish
+        const madinaVoice = voices.find(v =>
+          v.name.includes('Madina') || v.name.includes('uz-UZ') || v.lang === 'uz-UZ' || v.lang === 'uz_UZ'
+        );
+
+        if (madinaVoice) {
+          utterance.voice = madinaVoice;
+        }
+
+        utterance.onerror = (e) => {
+          console.warn("SpeechSynthesis xatosi, fallback ishlatiladi:", e);
+          playRecordedVoiceFallback(ticketNumStr, windowStr);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      }, 400);
+
+    } else {
+      // Brauzer Speech API qo'llab-quvvatlamasa fallback
+      playRecordedVoiceFallback(ticketNumStr, windowStr);
+    }
+  }
+
+  // Ovozni sinash tugmasi
+  function testMadinaVoice() {
+    speakMadinaVoice("0042", "{{ window_number|default:'1' }}");
+  }
+
+  // ==========================================
+  // ⏱ LIVE TIMER
+  // ==========================================
+  function startLiveTimer(startTimeStr) {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    const timerEl = document.getElementById("timer");
+    if (!timerEl || !startTimeStr) return;
+
+    const startTime = new Date(startTimeStr).getTime();
+
+    function update() {
+      const now = new Date().getTime();
+      const elapsedSeconds = Math.max(0, Math.floor((now - startTime) / 1000));
+      const m = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+      const s = String(elapsedSeconds % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }
+
+    update();
+    timerIntervalId = setInterval(update, 1000);
+  }
+
+  // ==========================================
+  // 🔄 REALTIME AUTO-REFRESH & POLLING
+  // ==========================================
+  function refreshAllQueues() {
+    // 1. Kutayotganlar
+    fetch("{% url 'ajax-waiting-tickets' %}")
+      .then(r => r.json())
+      .then(data => {
+        const box = document.getElementById("waiting-tickets-box");
+        if (box && data.html) box.innerHTML = data.html;
+        const countBadge = document.getElementById("waiting-badge");
+        const topCounter = document.getElementById("today-waiting-counter");
+        if (countBadge && data.count !== undefined) countBadge.textContent = `${data.count} ta`;
+        if (topCounter && data.count !== undefined) topCounter.textContent = `${data.count} ta`;
+      })
+      .catch(() => {});
+
+    // 2. Xizmat ko'rsatilayotgan
+    fetch("{% url 'ajax-serving-ticket' %}")
+      .then(r => r.json())
+      .then(data => {
+        const box = document.getElementById("serving-ticket-box");
+        const statusBadge = document.getElementById("serving-status-badge");
+        const newTicketId = String(data.ticket_id || "");
+
+        if (newTicketId !== currentServingId) {
+          if (box && data.html) box.innerHTML = data.html;
+          currentServingId = newTicketId;
+
+          if (data.has_ticket && data.ticket_number) {
+            if (statusBadge) statusBadge.textContent = "Faol";
+            const timerStartEl = document.getElementById("timer-start-time");
+            if (timerStartEl) startLiveTimer(timerStartEl.value);
+
+            // Yangi qabul qilingan chiptani Madina ovozida e'lon qilish
+            speakMadinaVoice(data.ticket_number, data.window_number);
+          } else {
+            if (statusBadge) statusBadge.textContent = "Kutilmoqda";
+            if (timerIntervalId) clearInterval(timerIntervalId);
+          }
+        }
+      })
+      .catch(() => {});
+
+    // 3. Yakunlanganlar
+    fetch("{% url 'ajax-done-tickets' %}")
+      .then(r => r.json())
+      .then(data => {
+        const box = document.getElementById("done-tickets-box");
+        if (box && data.html) box.innerHTML = data.html;
+        const countBadge = document.getElementById("done-badge");
+        const topCounter = document.getElementById("today-done-counter");
+        if (countBadge && data.count !== undefined) countBadge.textContent = `${data.count} ta`;
+        if (topCounter && data.count !== undefined) topCounter.textContent = `${data.count} ta`;
+      })
+      .catch(() => {});
+  }
+
+  // ==========================================
+  // 🚀 INITIALIZATION
+  // ==========================================
+  document.addEventListener("DOMContentLoaded", () => {
+    updateVoiceUI();
+
+    // Boshlang'ich taymerni ishga tushirish
+    const timerStartEl = document.getElementById("timer-start-time");
+    if (timerStartEl && timerStartEl.value) {
+      startLiveTimer(timerStartEl.value);
+    }
+
+    // Sahifa yangilanganda yangi qabul qilingan ticket bo'lsa darhol e'lon qilish
+    {% if just_served_ticket %}
+      speakMadinaVoice("{{ just_served_ticket }}", "{{ just_served_window|default:'' }}");
+    {% endif %}
+
+    // Har 3 soniyada yangilanish
+    setInterval(refreshAllQueues, 3000);
   });
-  fetch("{% url 'ajax-serving-ticket' %}").then(r => r.json()).then(data => {
-    document.getElementById("serving-ticket-box").innerHTML = data.html;
-    const timerStart = document.getElementById("timer-start-time");
-    if (timerStart) startLiveTimer(timerStart.value);
-  });
-  fetch("{% url 'ajax-done-tickets' %}").then(r => r.json()).then(data => {
-    document.getElementById("done-tickets-box").innerHTML = data.html;
-  });
-}
+
+  // Django Messages / Swal bildirishnomalari
+  {% if messages %}
+    {% for message in messages %}
+      Swal.fire({
+        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+        title: "{{ message|escapejs }}",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    {% endfor %}
+  {% endif %}
 </script>
 {% endblock %}

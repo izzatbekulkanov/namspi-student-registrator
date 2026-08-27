@@ -159,7 +159,7 @@ def delete_assignment(request, pk):
 
 @login_required
 def operator_queue_view(request):
-    today = date.today()  # ✅ timezone muammosiz ishlaydi
+    today = now().date()
 
     assigned_services = AssignedService.objects.filter(
         user=request.user
@@ -169,21 +169,25 @@ def operator_queue_view(request):
     waiting_tickets = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="waiting"
-    ).order_by('created_at')
+    ).select_related('service', 'service__section').order_by('created_at')
 
     serving_ticket = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="serving",
         served_by=request.user
-    ).first()
+    ).select_related('service', 'service__section').first()
 
-    # ✅ faqat bugungi yakunlangan xizmatlar
+    # Operatorning bugungi oyna raqami
+    work_window = DailyWorkWindow.objects.filter(operator=request.user, date=today).first()
+    window_number = work_window.window_number if work_window else None
+
+    # Faqat bugungi yakunlangan xizmatlar
     done_tickets = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="done",
         served_by=request.user,
         ended_at__date=today
-    ).order_by('-ended_at')[:20]
+    ).select_related('service', 'service__section').order_by('-ended_at')[:30]
 
     for d in done_tickets:
         if d.started_at and d.ended_at:
@@ -195,39 +199,71 @@ def operator_queue_view(request):
         else:
             d.duration_display = "-"
 
+    # Operator statistikasi
+    profile, _ = OperatorProfile.objects.get_or_create(operator=request.user)
+    today_count = QueueTicket.objects.filter(served_by=request.user, status='done', ended_at__date=today).count()
+
+    just_served_ticket = request.session.pop('just_served_ticket', None)
+    just_served_window = request.session.pop('just_served_window', None)
+
     return render(request, 'services/operator_queue.html', {
         'waiting_tickets': waiting_tickets,
         'serving_ticket': serving_ticket,
         'done_tickets': done_tickets,
+        'window_number': window_number,
+        'profile': profile,
+        'today_count': today_count,
+        'waiting_count': waiting_tickets.count(),
+        'just_served_ticket': just_served_ticket,
+        'just_served_window': just_served_window or window_number,
     })
 
 
 @login_required
 def ajax_waiting_tickets(request):
     assigned = AssignedService.objects.filter(user=request.user).values_list('service_id', flat=True)
-    waiting_tickets = QueueTicket.objects.filter(service_id__in=assigned, status='waiting').order_by('created_at')
+    waiting_tickets = QueueTicket.objects.filter(
+        service_id__in=assigned, status='waiting'
+    ).select_related('service', 'service__section').order_by('created_at')
     html = render_to_string('services/_waiting_tickets.html', {'waiting_tickets': waiting_tickets}, request=request)
-    return JsonResponse({'html': html})
+    return JsonResponse({'html': html, 'count': waiting_tickets.count()})
 
 
 @login_required
 def ajax_serving_ticket(request):
+    today = now().date()
     assigned = AssignedService.objects.filter(user=request.user).values_list('service_id', flat=True)
-    serving_ticket = QueueTicket.objects.filter(service_id__in=assigned, status='serving',
-                                                served_by=request.user).first()
-    html = render_to_string('services/_serving_ticket.html', {'serving_ticket': serving_ticket}, request=request)
-    return JsonResponse({'html': html})
+    serving_ticket = QueueTicket.objects.filter(
+        service_id__in=assigned, status='serving', served_by=request.user
+    ).select_related('service', 'service__section').first()
+
+    work_window = DailyWorkWindow.objects.filter(operator=request.user, date=today).first()
+    window_number = work_window.window_number if work_window else (serving_ticket.window_number if serving_ticket else None)
+
+    html = render_to_string('services/_serving_ticket.html', {
+        'serving_ticket': serving_ticket,
+        'window_number': window_number,
+    }, request=request)
+    return JsonResponse({
+        'html': html,
+        'has_ticket': bool(serving_ticket),
+        'ticket_id': serving_ticket.id if serving_ticket else None,
+        'ticket_number': serving_ticket.ticket_number if serving_ticket else None,
+        'window_number': window_number,
+    })
 
 
 @login_required
 def ajax_done_tickets(request):
+    today = now().date()
     assigned_services = AssignedService.objects.filter(user=request.user).values_list('service_id', flat=True)
 
     done_tickets = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="done",
-        served_by=request.user
-    ).order_by('-ended_at')[:20]
+        served_by=request.user,
+        ended_at__date=today
+    ).select_related('service', 'service__section').order_by('-ended_at')[:30]
 
     for ticket in done_tickets:
         if ticket.started_at and ticket.ended_at:
@@ -242,7 +278,7 @@ def ajax_done_tickets(request):
         "done_tickets": done_tickets
     }, request=request)
 
-    return JsonResponse({"html": html})
+    return JsonResponse({"html": html, "count": done_tickets.count()})
 
 
 @require_POST

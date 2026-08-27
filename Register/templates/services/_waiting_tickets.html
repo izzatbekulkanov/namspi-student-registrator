@@ -1,65 +1,42 @@
-{% load static %}
 {% if waiting_tickets %}
 <div class="table-responsive scroll-box">
-    <table class="table table-sm table-hover align-middle">
-        <thead>
-        <tr>
-            <th>Chipta</th>
-            <th>Xizmat</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody id="waiting-tickets-tbody">
-        {% for ticket in waiting_tickets %}
-        <tr>
-            <td><strong class="text-success">{{ ticket.ticket_number }}</strong></td>
-            <td>{{ ticket.service.name }}</td>
-            <td>
-                <form method="POST" action="{% url 'serve-ticket' ticket.id %}">
-                    {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-primary">Qabul</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+  <table class="table table-hover align-middle mb-0">
+    <thead class="table-light">
+      <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+        <th>Chipta</th>
+        <th>Xizmat</th>
+        <th class="text-end">Amal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ticket in waiting_tickets %}
+      <tr class="queue-item-row">
+        <td>
+          <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-2 fw-bold font-monospace border border-primary border-opacity-25 rounded-3">
+            {{ ticket.ticket_number }}
+          </span>
+        </td>
+        <td>
+          <div class="fw-semibold text-dark">{{ ticket.service.name }}</div>
+          <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ ticket.created_at|date:"H:i:s" }}</small>
+        </td>
+        <td class="text-end">
+          <form method="POST" action="{% url 'serve-ticket' ticket.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-primary px-3 shadow-sm rounded-pill fw-semibold btn-serve-ticket" data-ticket="{{ ticket.ticket_number }}">
+              <i class="bi bi-person-check me-1"></i> Qabul
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% else %}
-<p class="text-muted text-center">Navbatlar mavjud emas.</p>
+<div class="text-center py-5 text-muted">
+  <div class="fs-1 mb-2">🎉</div>
+  <h6 class="fw-bold">Kutayotgan navbatlar yo‘q</h6>
+  <p class="small text-secondary mb-0">Barcha navbatlarga xizmat ko‘rsatildi.</p>
+</div>
 {% endif %}
-
-<!-- ✅ Realtime navbatni yangilash -->
-<script>
-    function refreshWaitingTicketsOnly() {
-        fetch("{% url 'ajax-waiting-tickets' %}")
-            .then(response => response.json())
-            .then(data => {
-                const container = document.getElementById("waiting-tickets-box");
-                if (container) {
-                    container.innerHTML = data.html;
-                }
-            });
-    }
-
-    setInterval(refreshWaitingTicketsOnly, 3000); // har 3 sekundda yangilanadi
-    document.addEventListener("DOMContentLoaded", refreshWaitingTicketsOnly);
-</script>
-
-<!-- ✅ Swal bildirishnomalari -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    {% if messages %}
-        {% for message in messages %}
-            Swal.fire({
-                icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
-                title: "{{ message|escapejs }}",
-                toast: true,
-                position: "top-end",
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        {% endfor %}
-    {% endif %}
-</script>
