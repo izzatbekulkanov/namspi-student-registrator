@@ -425,6 +425,45 @@
       });
     {% endfor %}
   {% endif %}
+
+  // 🗑️ Global SweetAlert2 Tasdiqlash Dialoogi (Confirmation Dialog)
+  document.addEventListener("click", function(e) {
+    const target = e.target.closest("[data-confirm]");
+    if (target) {
+      e.preventDefault();
+      const msg = target.getAttribute("data-confirm") || "Ushbu amalni bajarmoqchimisiz?";
+      const title = target.getAttribute("data-confirm-title") || "Harakatni tasdiqlang";
+      const btnText = target.getAttribute("data-confirm-btn") || "Ha, bajarish";
+      const btnColor = target.getAttribute("data-confirm-color") || "#dc2626";
+      const form = target.closest("form");
+
+      Swal.fire({
+        title: title,
+        text: msg,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: btnColor,
+        cancelButtonColor: "#64748b",
+        confirmButtonText: btnText,
+        cancelButtonText: "Bekor qilish",
+        reverseButtons: true,
+        customClass: {
+          popup: 'border shadow-lg',
+          confirmButton: 'btn btn-danger px-3 py-2 fw-semibold me-2',
+          cancelButton: 'btn btn-secondary px-3 py-2'
+        },
+        buttonsStyling: false
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (form) {
+            form.submit();
+          } else if (target.tagName === 'A' && target.href) {
+            window.location.href = target.href;
+          }
+        }
+      });
+    }
+  });
 </script>
 
 {% block script %}{% endblock script %}

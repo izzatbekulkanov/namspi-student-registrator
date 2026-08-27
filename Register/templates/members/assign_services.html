@@ -151,7 +151,10 @@
               <form method="POST" action="{% url 'unassign-subservice' a.id %}" class="d-inline">
                 {% csrf_token %}
                 <input type="hidden" name="user" value="{{ selected_user.id }}">
-                <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" onclick="return confirm('Ushbu xizmatni xodimdan ajratishni xohlaysizmi?')">
+                <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
+                        data-confirm="Ushbu xizmatni xodimdan ajratishni xohlaysizmi?"
+                        data-confirm-title="Xizmatni ajratish"
+                        data-confirm-btn="Ha, ajratish">
                   <i class="bi bi-x-circle me-1"></i> Ajratish
                 </button>
               </form>

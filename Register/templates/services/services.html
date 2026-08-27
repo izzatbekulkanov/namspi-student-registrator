@@ -86,10 +86,14 @@
                     <td><div class="fw-bold text-dark">{{ s.name }}</div></td>
                     <td><small class="text-muted">{{ s.description|default:"—"|truncatewords:6 }}</small></td>
                     <td class="text-end">
-                      <form method="post" action="{% url 'delete-section' s.id %}" class="d-inline" onsubmit="return confirm('Ushbu bo‘limni o‘chirmoqchimisiz? Unga bog‘langan barcha xizmatlar ham o‘chib ketishi mumkin!')">
+                      <form method="post" action="{% url 'delete-section' s.id %}" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="active_tab" value="section">
-                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="O‘chirish">
+                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
+                                data-confirm="Ushbu bo‘limni o‘chirmoqchimisiz? Unga bog‘langan barcha xizmatlar ham o‘chib ketishi mumkin!"
+                                data-confirm-title="Bo‘limni o‘chirish"
+                                data-confirm-btn="Ha, o‘chirish"
+                                title="O‘chirish">
                           <i class="bi bi-trash"></i>
                         </button>
                       </form>
@@ -180,10 +184,14 @@
                     <td><div class="fw-bold text-dark">{{ ss.name }}</div></td>
                     <td><span class="badge bg-light text-secondary border">{{ ss.section.name }}</span></td>
                     <td class="text-end">
-                      <form method="post" action="{% url 'delete-subservice' ss.id %}" class="d-inline" onsubmit="return confirm('Ushbu xizmatni o‘chirmoqchimisiz?')">
+                      <form method="post" action="{% url 'delete-subservice' ss.id %}" class="d-inline">
                         {% csrf_token %}
                         <input type="hidden" name="active_tab" value="subservice">
-                        <button type="submit" class="btn btn-sm btn-outline-danger px-2 py-1" title="O‘chirish">
+                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
+                                data-confirm="Ushbu xizmatni o‘chirmoqchimisiz?"
+                                data-confirm-title="Xizmatni o‘chirish"
+                                data-confirm-btn="Ha, o‘chirish"
+                                title="O‘chirish">
                           <i class="bi bi-trash"></i>
                         </button>
                       </form>
