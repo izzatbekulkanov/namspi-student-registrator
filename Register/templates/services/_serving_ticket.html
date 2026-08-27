@@ -45,27 +45,19 @@
          value="{{ serving_ticket.started_at|date:'Y-m-d H:i:s' }}">
 
   <!-- Tugmalar bloki -->
-  <div class="d-flex flex-column gap-2">
-    <!-- Qayta chaqirish (Ovozli e'lon) -->
-    <button type="button" class="btn btn-outline-primary btn-sm py-2 fw-semibold rounded-3" id="btn-recall-ticket"
-            onclick="speakMadinaVoice('{{ serving_ticket.ticket_number }}', '{{ window_number|default:'' }}')">
-      <i class="bi bi-megaphone-fill me-1 text-primary"></i> 📢 Qayta chaqirish (Madina ovozida)
-    </button>
-
-    <div class="d-flex gap-2">
-      <form method="POST" action="{% url 'complete-ticket' serving_ticket.id %}" class="flex-grow-1">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm rounded-3">
-          <i class="bi bi-check-circle-fill me-1"></i> Yakunlash
-        </button>
-      </form>
-      <form method="POST" action="{% url 'cancel-ticket' serving_ticket.id %}" class="flex-grow-1">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-outline-danger w-100 py-2 fw-semibold rounded-3">
-          <i class="bi bi-x-circle me-1"></i> Rad etish
-        </button>
-      </form>
-    </div>
+  <div class="d-flex gap-2 mt-2">
+    <form method="POST" action="{% url 'complete-ticket' serving_ticket.id %}" class="flex-grow-1">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm rounded-3">
+        <i class="bi bi-check-circle-fill me-1"></i> Yakunlash
+      </button>
+    </form>
+    <form method="POST" action="{% url 'cancel-ticket' serving_ticket.id %}" class="flex-grow-1">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-danger w-100 py-2 fw-semibold rounded-3">
+        <i class="bi bi-x-circle me-1"></i> Rad etish
+      </button>
+    </form>
   </div>
 </div>
 {% else %}

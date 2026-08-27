@@ -195,39 +195,72 @@ function processNextAnnouncement() {
     // E'lon oynasini ko'rsatish
     if (announcementEl) announcementEl.classList.add("active");
 
-    // Ovozli xabarlar ro'yxati (Ketma-ket)
-    const audioQueue = [];
+    const speechText = `${ticketNumStr} - raqamli navbat egasi, ${windowNum ? windowNum + ' - ' : ''}oynaga marhamat!`;
 
     // 1. Ding-dong
-    audioQueue.push("assets/sound/ding-dong.mp3");
+    const dingDong = new Audio("assets/sound/ding-dong.mp3");
+    dingDong.play().catch(() => {});
 
-    // 2. Chipta raqami raqamlari (0-9)
-    for (let char of ticketNumStr) {
-        audioQueue.push(`assets/voice/${char}.mp3`);
-    }
-    audioQueue.push("assets/voice/inchi_raqam_iltimos.mp3");
+    function playRecordedVoiceSequence() {
+        const audioQueue = [];
+        audioQueue.push("assets/sound/ding-dong.mp3");
 
-    // 3. Oyna raqami (agar mavjud bo'lsa)
-    if (windowNum) {
-        for (let char of String(windowNum)) {
+        for (let char of ticketNumStr) {
             audioQueue.push(`assets/voice/${char}.mp3`);
         }
-        audioQueue.push("assets/voice/inchi_oynaga_boring.mp3");
+        audioQueue.push("assets/voice/inchi_raqam_iltimos.mp3");
+
+        if (windowNum) {
+            for (let char of String(windowNum)) {
+                audioQueue.push(`assets/voice/${char}.mp3`);
+            }
+            audioQueue.push("assets/voice/inchi_oynaga_boring.mp3");
+        }
+
+        playAudioSequence(audioQueue, finishAnnouncement);
     }
 
-    // Audio ketma-ket ijro etiladi
-    playAudioSequence(audioQueue, () => {
-        // Audio tugagach 1.5 soniya ushlab turib yopish
+    function finishAnnouncement() {
         setTimeout(() => {
             if (announcementEl) announcementEl.classList.remove("active");
             if (rowEl) rowEl.classList.remove("row-active");
 
-            // Keyingi e'lonni e'lon qilish
             setTimeout(() => {
                 processNextAnnouncement();
             }, 800);
         }, 1500);
-    });
+    }
+
+    // 2. Edge Madina TTS
+    let ttsStarted = false;
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+
+        setTimeout(() => {
+            const utterance = new SpeechSynthesisUtterance(speechText);
+            utterance.lang = 'uz-UZ';
+            utterance.rate = 0.92;
+            utterance.pitch = 1.0;
+
+            const voices = window.speechSynthesis.getVoices();
+            const madinaVoice = voices.find(v =>
+                v.name.includes('Madina') || v.name.includes('uz-UZ') || v.lang === 'uz-UZ' || v.lang === 'uz_UZ'
+            );
+            if (madinaVoice) utterance.voice = madinaVoice;
+
+            utterance.onend = finishAnnouncement;
+            utterance.onerror = () => {
+                playRecordedVoiceSequence();
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }, 400);
+        ttsStarted = true;
+    }
+
+    if (!ttsStarted) {
+        playRecordedVoiceSequence();
+    }
 }
 
 // Boshlang'ich yuklash va 3 soniyali davriy so'rov

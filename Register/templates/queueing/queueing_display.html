@@ -147,6 +147,30 @@
     audio.play().catch(() => playAudioSequence(remaining, onComplete));
   }
 
+  function playRecordedSequence(ticketNumStr, windowNum, onComplete) {
+    const voices = [];
+    voices.push("{% static 'sound/ding-dong.mp3' %}");
+
+    for (let ch of ticketNumStr) {
+      voices.push(`{% static 'voice/' %}${ch}.mp3`);
+    }
+    voices.push("{% static 'voice/inchi_raqam_iltimos.mp3' %}");
+
+    if (windowNum) {
+      for (let ch of windowNum) {
+        voices.push(`{% static 'voice/' %}${ch}.mp3`);
+      }
+      voices.push("{% static 'voice/inchi_oynaga_boring.mp3' %}");
+    }
+
+    playAudioSequence(voices, () => {
+      setTimeout(() => {
+        ticketAlert.classList.add("d-none");
+        if (onComplete) onComplete();
+      }, 1200);
+    });
+  }
+
   function announceTicket(ticket, callback) {
     // 1. Vizual ko‘rsatish
     const ticketNumStr = pad(ticket.ticket_number);
@@ -156,33 +180,48 @@
     windowNumberEl.textContent = windowNum ? `${windowNum} - oyna` : "Xizmat oynasi";
     ticketAlert.classList.remove("d-none");
 
-    // 2. Audio fayllarni tayyorlash
-    const voices = [];
+    const speechText = `${ticketNumStr} - raqamli navbat egasi, ${windowNum ? windowNum + ' - ' : ''}oynaga marhamat!`;
 
-    // 🎵 Ding dong
-    voices.push("{% static 'sound/ding-dong.mp3' %}");
+    // 2. Ding-dong yangraydi
+    const ding = new Audio("{% static 'sound/ding-dong.mp3' %}");
+    ding.play().catch(() => {});
 
-    // 🎵 Raqamlar (0-9)
-    for (let ch of ticketNumStr) {
-      voices.push(`{% static 'voice/' %}${ch}.mp3`);
-    }
-    voices.push("{% static 'voice/inchi_raqam_iltimos.mp3' %}");
+    // 3. Edge Madina TTS
+    let ttsWorked = false;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
 
-    // 🎵 Oyna raqami (agar mavjud bo'lsa)
-    if (windowNum) {
-      for (let ch of windowNum) {
-        voices.push(`{% static 'voice/' %}${ch}.mp3`);
-      }
-      voices.push("{% static 'voice/inchi_oynaga_boring.mp3' %}");
-    }
-
-    // 3. Audio ketma-ket ijro
-    playAudioSequence(voices, () => {
       setTimeout(() => {
-        ticketAlert.classList.add("d-none");
-        if (callback) callback();
-      }, 1500);
-    });
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        utterance.lang = 'uz-UZ';
+        utterance.rate = 0.92;
+        utterance.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const madina = voices.find(v =>
+          v.name.includes('Madina') || v.name.includes('uz-UZ') || v.lang === 'uz-UZ' || v.lang === 'uz_UZ'
+        );
+        if (madina) utterance.voice = madina;
+
+        utterance.onend = () => {
+          setTimeout(() => {
+            ticketAlert.classList.add("d-none");
+            if (callback) callback();
+          }, 1500);
+        };
+
+        utterance.onerror = () => {
+          playRecordedSequence(ticketNumStr, windowNum, callback);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      }, 400);
+      ttsWorked = true;
+    }
+
+    if (!ttsWorked) {
+      playRecordedSequence(ticketNumStr, windowNum, callback);
+    }
   }
 
   function announceTickets(tickets, index = 0) {
