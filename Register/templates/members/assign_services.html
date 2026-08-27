@@ -1,191 +1,469 @@
 {% extends 'members/staff_managment.html' %}
 {% load static %}
 
-{% block title %}Xizmatlarni biriktirish — Xodimlar boshqaruvi{% endblock %}
+{% block title %}Xizmatlarni biriktirish — NamDPI Registrator{% endblock %}
 
 {% block staff_content %}
+<style>
+  /* 🌟 OPERATOR PROFILE BANNER */
+  .operator-profile-card {
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  }
+
+  /* 📦 SERVICE SELECTABLE CARD */
+  .service-select-card {
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    user-select: none;
+    position: relative;
+  }
+  .service-select-card:hover {
+    border-color: #94a3b8;
+    background-color: #f8fafc;
+  }
+  .service-select-card.selected {
+    border-color: var(--primary-color) !important;
+    background-color: #eff6ff !important;
+    box-shadow: 0 0 0 1px var(--primary-color);
+  }
+  .service-select-card .form-check-input {
+    cursor: pointer;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  /* 📜 SCROLLABLE CONTAINER */
+  .service-scroll-list {
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .service-scroll-list::-webkit-scrollbar { width: 5px; }
+  .service-scroll-list::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 2px; }
+
+  /* 👤 OPERATOR PICKER CARD */
+  .operator-picker-card {
+    background: #ffffff;
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.15s ease;
+  }
+  .operator-picker-card:hover {
+    color: inherit;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+  }
+</style>
+
 <div class="container-fluid px-0">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <!-- 🔝 Sarlavha & Xodimni Tanlash Paneli -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
       <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-        <i class="bi bi-diagram-3-fill text-primary"></i> Xizmatlarni biriktirish
+        <i class="bi bi-diagram-3-fill text-primary"></i> Xizmatlarni Biriktirish
       </h5>
-      <p class="text-secondary small mb-0">Operator xodimlariga tegishli xizmat turlarini biriktirish va sozlash</p>
+      <p class="text-secondary small mb-0">Operator xodimlariga qaysi xizmat turlari bo‘yicha navbat qabul qilishini belgilang</p>
+    </div>
+
+    <!-- 👤 Xodimni tezkor tanlash dropdowni -->
+    <div class="dropdown custom-dropdown-select" style="min-width: 300px;">
+      <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between text-truncate dropdown-toggle py-2 px-3 shadow-sm" type="button" id="userSelectDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="d-flex align-items-center gap-2 text-truncate">
+          <i class="bi bi-person-fill text-primary"></i>
+          {% if selected_user %}
+            <span class="fw-bold text-dark">{{ selected_user.full_name }}</span>
+            <small class="text-muted">(@{{ selected_user.username }})</small>
+          {% else %}
+            <span class="text-secondary">Xodimni tanlang...</span>
+          {% endif %}
+        </span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end w-100 shadow-sm p-1" aria-labelledby="userSelectDropdown" style="max-height: 320px; overflow-y: auto;">
+        <li class="p-2 border-bottom">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="operatorDropdownSearch" placeholder="Xodim qidirish..." onclick="event.stopPropagation()">
+          </div>
+        </li>
+        {% for u in users %}
+        <li class="operator-dropdown-option">
+          <a class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if selected_user and u.id == selected_user.id %}active{% endif %}" href="?user_id={{ u.id }}">
+            <div class="overflow-hidden pe-2">
+              <div class="fw-bold text-truncate">{{ u.full_name }}</div>
+              <small class="{% if selected_user and u.id == selected_user.id %}text-white-50{% else %}text-muted{% endif %} d-block text-truncate">
+                @{{ u.username }} &bull; {{ u.department_name|default:"Bo‘limsiz" }}
+              </small>
+            </div>
+            {% if selected_user and u.id == selected_user.id %}
+              <i class="bi bi-check2 text-white fs-5 flex-shrink-0"></i>
+            {% endif %}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 
-  <div class="card-dashboard p-3 p-md-4 mb-4">
-    <!-- Tanlash formasi (Custom Dropdown) -->
-    <div class="row g-3 align-items-end mb-4">
-      <div class="col-md-6">
-        <label class="form-label fw-semibold text-secondary small">Operator / Xodimni tanlang</label>
-        <div class="dropdown custom-dropdown-select">
-          <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between text-truncate dropdown-toggle py-2" type="button" id="userSelectDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <span class="d-flex align-items-center gap-2 text-truncate">
-              <i class="bi bi-person text-primary"></i>
-              {% if selected_user %}
-                <span class="fw-bold">{{ selected_user.full_name }}</span> (@{{ selected_user.username }})
-              {% else %}
-                <span class="text-muted">-- Xodimni tanlang --</span>
-              {% endif %}
-            </span>
-          </button>
-          <ul class="dropdown-menu w-100 shadow-sm p-1" aria-labelledby="userSelectDropdown" style="max-height: 320px; overflow-y: auto;">
-            {% for user in users %}
-            <li>
-              <a class="dropdown-item d-flex align-items-center justify-content-between py-2 {% if selected_user and user.id == selected_user.id %}active{% endif %}" href="?user_id={{ user.id }}">
-                <div>
-                  <div class="fw-bold">{{ user.full_name }}</div>
-                  <small class="{% if selected_user and user.id == selected_user.id %}text-white-50{% else %}text-muted{% endif %}">@{{ user.username }} &bull; {{ user.department_name|default:"Bo‘limsiz" }}</small>
-                </div>
-                {% if selected_user and user.id == selected_user.id %}
-                  <i class="bi bi-check2 text-white fs-5"></i>
-                {% endif %}
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    {% if selected_user %}
-    <div class="p-3 bg-light border mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2" style="border-radius: var(--radius-sm);">
-      <div class="d-flex align-items-center gap-2">
-        <div class="sidebar-user-avatar">
-          {{ selected_user.first_name|first|default:selected_user.username|first }}
+  {% if selected_user %}
+  <!-- 🌟 1. TANLANGAN OPERATOR PROFILI BANNERI -->
+  <div class="operator-profile-card mb-4">
+    <div class="row align-items-center g-3">
+      <div class="col-md-7 d-flex align-items-center gap-3">
+        <div class="sidebar-user-avatar" style="width: 46px; height: 46px; font-size: 1rem;">
+          {% if selected_user.first_name and selected_user.last_name %}
+            {{ selected_user.first_name|first }}{{ selected_user.last_name|first }}
+          {% elif selected_user.first_name %}
+            {{ selected_user.first_name|first }}
+          {% else %}
+            <i class="bi bi-person-fill fs-5"></i>
+          {% endif %}
         </div>
         <div>
-          <h6 class="fw-bold mb-0 text-dark">{{ selected_user.full_name }}</h6>
-          <small class="text-muted">@{{ selected_user.username }} &bull; {{ selected_user.staff_position|default:"Operator" }}</small>
-        </div>
-      </div>
-      <div>
-        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
-          Biriktirilgan xizmatlar: {{ assignments|length }} ta
-        </span>
-      </div>
-    </div>
-
-    <form method="POST" id="assignForm">
-      {% csrf_token %}
-      <input type="hidden" name="user" value="{{ selected_user.id }}">
-
-      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h6 class="fw-bold text-dark mb-0">Mavjud xizmatlarni tanlang:</h6>
-        
-        <!-- 🎛️ Custom Section Filter Dropdown -->
-        <div class="dropdown custom-dropdown-select" style="min-width: 280px;">
-          <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between dropdown-toggle py-1 px-3" type="button" id="sectionFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <span id="selectedSectionText" class="d-flex align-items-center gap-2 small fw-medium">
-              <i class="bi bi-folder2 text-primary"></i> Barcha bo‘limlar bo‘yicha
-            </span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end w-100 shadow-sm p-1" aria-labelledby="sectionFilterDropdown" style="max-height: 280px; overflow-y: auto;">
-            <li>
-              <a class="dropdown-item d-flex align-items-center justify-content-between section-filter-option active" href="javascript:void(0)" data-value="">
-                <span><i class="bi bi-folder2 me-2 text-primary"></i> Barcha bo‘limlar bo‘yicha</span>
-                <i class="bi bi-check2 check-icon"></i>
-              </a>
-            </li>
-            <li><hr class="dropdown-divider my-1"></li>
-            {% for sec in sections %}
-            <li>
-              <a class="dropdown-item d-flex align-items-center justify-content-between section-filter-option" href="javascript:void(0)" data-value="section-{{ sec.id }}">
-                <span><i class="bi bi-folder me-2 text-secondary"></i> {{ sec.name }}</span>
-                <i class="bi bi-check2 check-icon d-none"></i>
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-
-      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4" id="subserviceList">
-        {% for ss in available_subservices %}
-        <div class="col subservice-item section-{{ ss.section.id }}">
-          <div class="form-check border p-3 h-100 bg-white shadow-sm" style="border-radius: var(--radius-sm); transition: all 0.15s ease;">
-            <input class="form-check-input" type="checkbox" name="subservices" value="{{ ss.id }}" id="sub-{{ ss.id }}">
-            <label class="form-check-label w-100 ms-2" for="sub-{{ ss.id }}" style="cursor: pointer;">
-              <strong class="text-dark d-block">{{ ss.name }}</strong>
-              <small class="text-muted"><i class="bi bi-folder2 me-1"></i>{{ ss.section.name }}</small>
-            </label>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h5 class="fw-bold mb-0 text-dark">{{ selected_user.full_name }}</h5>
+            <span class="badge {{ selected_user.role_badge }} px-2 py-1">{{ selected_user.role_title }}</span>
+          </div>
+          <div class="text-muted small mt-1">
+            <code class="text-primary">@{{ selected_user.username }}</code> &bull; 
+            <span><i class="bi bi-building me-1"></i>{{ selected_user.department_name|default:"Bo‘limsiz" }}</span> &bull; 
+            <span><i class="bi bi-award me-1"></i>{{ selected_user.staff_position|default:"Operator" }}</span>
           </div>
         </div>
-        {% empty %}
-        <div class="col-12 text-center py-4 text-muted">
-          <p class="mb-0">Barcha xizmatlar allaqachon biriktirilgan yoki mavjud emas.</p>
+      </div>
+
+      <div class="col-md-5 text-md-end">
+        <div class="d-inline-flex gap-2">
+          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 fs-6 font-monospace">
+            <i class="bi bi-check2-circle me-1"></i> Biriktirilgan: <strong>{{ assignments|length }} ta</strong>
+          </span>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 fs-6 font-monospace">
+            <i class="bi bi-plus-circle me-1"></i> Biriktirilishi mumkin: <strong>{{ available_subservices|length }} ta</strong>
+          </span>
         </div>
-        {% endfor %}
       </div>
-
-      {% if available_subservices %}
-      <div class="text-end">
-        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
-          <i class="bi bi-check2-circle me-1"></i> Tanlangan xizmatlarni biriktirish
-        </button>
-      </div>
-      {% endif %}
-    </form>
-
-    <hr class="my-4">
-
-    <h6 class="fw-bold text-dark mb-3">Ushbu xodimga biriktirilgan xizmatlar:</h6>
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-            <th>#</th>
-            <th>Xizmat nomi</th>
-            <th>Tegishli bo‘lim</th>
-            <th class="text-end">Amal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in assignments %}
-          <tr>
-            <td class="text-muted fw-bold">{{ forloop.counter }}</td>
-            <td class="fw-semibold text-dark">{{ a.service.name }}</td>
-            <td><span class="badge bg-light text-secondary border">{{ a.service.section.name }}</span></td>
-            <td class="text-end">
-              <form method="POST" action="{% url 'unassign-subservice' a.id %}" class="d-inline">
-                {% csrf_token %}
-                <input type="hidden" name="user" value="{{ selected_user.id }}">
-                <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
-                        data-confirm="Ushbu xizmatni xodimdan ajratishni xohlaysizmi?"
-                        data-confirm-title="Xizmatni ajratish"
-                        data-confirm-btn="Ha, ajratish">
-                  <i class="bi bi-x-circle me-1"></i> Ajratish
-                </button>
-              </form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="4" class="text-center text-muted py-4">Hozircha hech qanday xizmat biriktirilmagan</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
     </div>
-    {% endif %}
   </div>
+
+  <!-- 🧱 2. IKKI USTUNLI BOSHQARUV ISH MAYDONI -->
+  <div class="row g-4">
+    <!-- 👈 CHAP USTUN: BIRIKTIRILGAN XIZMATLAR RO‘YXATI -->
+    <div class="col-lg-5">
+      <div class="card-dashboard p-3 p-md-4 h-100 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-check-circle-fill text-success"></i> Biriktirilgan Xizmatlar
+            </h6>
+            <small class="text-muted">Operator hozirda qabul qiladigan xizmatlar</small>
+          </div>
+          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 font-monospace">
+            {{ assignments|length }} ta
+          </span>
+        </div>
+
+        <div class="table-responsive flex-grow-1 service-scroll-list">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light sticky-top">
+              <tr class="text-uppercase text-secondary" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                <th>#</th>
+                <th>Xizmat nomi</th>
+                <th>Bo‘lim</th>
+                <th class="text-end">Amal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in assignments %}
+              <tr>
+                <td class="text-muted fw-bold small">{{ forloop.counter }}</td>
+                <td>
+                  <div class="fw-bold text-dark small">{{ a.service.name }}</div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-secondary border" style="font-size: 0.7rem;">
+                    {{ a.service.section.name }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <form method="POST" action="{% url 'unassign-subservice' a.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="user" value="{{ selected_user.id }}">
+                    <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
+                            data-confirm="Ushbu xizmatni xodimdan ajratishni xohlaysizmi?"
+                            data-confirm-title="Xizmatni ajratish"
+                            data-confirm-btn="Ha, ajratish"
+                            title="Xizmatni ajratish">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                  <i class="bi bi-inbox text-secondary fs-1 d-block mb-2"></i>
+                  <h6 class="fw-bold">Hozircha xizmatlar biriktirilmagan</h6>
+                  <p class="small text-secondary mb-0">O‘ng tarafdagi ro‘yxatdan kerakli xizmatlarni tanlab biriktiring.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 👉 O‘NG USTUN: MAVJUD BO‘SH XIZMATLARNI BIRIKTIRISH -->
+    <div class="col-lg-7">
+      <div class="card-dashboard p-3 p-md-4 h-100 d-flex flex-column">
+        <form method="POST" id="assignForm" class="d-flex flex-column h-100">
+          {% csrf_token %}
+          <input type="hidden" name="user" value="{{ selected_user.id }}">
+
+          <!-- Qidiruv, Bo'lim filtri va Tanlash boshqaruvi -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+              <div>
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                  <i class="bi bi-plus-circle-fill text-primary"></i> Yangi Xizmat Biriktirish
+                </h6>
+                <small class="text-muted">Biriktirish uchun xizmatlarni belgilang</small>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2" id="selectAllBtn">
+                <i class="bi bi-check-all me-1"></i> <span id="selectAllBtnText">Barchasini tanlash</span>
+              </button>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-sm-6">
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input type="text" id="subserviceQuickSearch" class="form-control" placeholder="Xizmat nomi bo‘yicha qidiruv...">
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <!-- Bo'lim bo'yicha filter dropdown -->
+                <div class="dropdown custom-dropdown-select">
+                  <button class="btn btn-sm btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between dropdown-toggle py-1 px-2" type="button" id="sectionFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span id="selectedSectionText" class="d-flex align-items-center gap-1 small text-truncate">
+                      <i class="bi bi-folder2 text-primary"></i> Barcha bo‘limlar
+                    </span>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end w-100 shadow-sm p-1" aria-labelledby="sectionFilterDropdown" style="max-height: 260px; overflow-y: auto;">
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center justify-content-between section-filter-option active py-1" href="javascript:void(0)" data-value="">
+                        <span><i class="bi bi-folder2 me-1 text-primary"></i> Barcha bo‘limlar</span>
+                        <i class="bi bi-check2 check-icon"></i>
+                      </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    {% for sec in sections %}
+                    <li>
+                      <a class="dropdown-item d-flex align-items-center justify-content-between section-filter-option py-1" href="javascript:void(0)" data-value="section-{{ sec.id }}">
+                        <span><i class="bi bi-folder me-1 text-secondary"></i> {{ sec.name }}</span>
+                        <i class="bi bi-check2 check-icon d-none"></i>
+                      </a>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Xizmatlar ro'yxati (Kataklar) -->
+          <div class="service-scroll-list flex-grow-1 mb-3">
+            <div class="row row-cols-1 row-cols-md-2 g-2" id="availableServicesGrid">
+              {% for ss in available_subservices %}
+              <div class="col subservice-grid-item section-{{ ss.section.id }}" data-title="{{ ss.name|lower }}">
+                <div class="service-select-card d-flex align-items-start gap-2 h-100" onclick="toggleServiceCard(this, event)">
+                  <input class="form-check-input mt-1 flex-shrink-0" type="checkbox" name="subservices" value="{{ ss.id }}" id="sub-{{ ss.id }}" onchange="syncServiceCard(this)">
+                  <div class="overflow-hidden flex-grow-1">
+                    <label class="fw-bold text-dark d-block mb-1 small text-truncate" for="sub-{{ ss.id }}" style="cursor: pointer;" title="{{ ss.name }}">
+                      {{ ss.name }}
+                    </label>
+                    <span class="badge bg-light text-secondary border" style="font-size: 0.68rem;">
+                      <i class="bi bi-folder me-1"></i>{{ ss.section.name }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              {% empty %}
+              <div class="col-12 text-center py-5 text-muted w-100">
+                <i class="bi bi-check2-all text-success fs-1 d-block mb-2"></i>
+                <h6 class="fw-bold">Barcha xizmatlar biriktirilgan</h6>
+                <p class="small text-secondary mb-0">Ushbu operatorga tizimdagi barcha xizmat turlari biriktirib bo‘lingan.</p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Pastki biriktirish amali -->
+          {% if available_subservices %}
+          <div class="pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2 mt-auto">
+            <span class="small fw-semibold text-secondary" id="selectedCountStatus">
+              Tanlandi: <strong class="text-primary" id="selectedCountNumber">0</strong> ta xizmat
+            </span>
+            <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm" id="submitAssignBtn" disabled>
+              <i class="bi bi-check2-circle me-1"></i> Biriktirishni saqlash
+            </button>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- 👥 3. AGAR XODIM TANLANMAGAN BO‘LSA: XODIMLAR KATALOGI -->
+  <div class="card-dashboard p-4 text-center">
+    <i class="bi bi-people text-primary fs-1 d-block mb-2"></i>
+    <h5 class="fw-bold text-dark">Xizmat biriktirish uchun xodimni tanlang</h5>
+    <p class="text-secondary small mb-4">Quyidagi xodimlardan birini tanlang yoki yuqoridagi qidiruv menyusidan foydalaning</p>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 text-start">
+      {% for u in users %}
+      <div class="col">
+        <a href="?user_id={{ u.id }}" class="operator-picker-card">
+          <div class="sidebar-user-avatar flex-shrink-0">
+            {% if u.first_name and u.last_name %}
+              {{ u.first_name|first }}{{ u.last_name|first }}
+            {% elif u.first_name %}
+              {{ u.first_name|first }}
+            {% else %}
+              <i class="bi bi-person-fill"></i>
+            {% endif %}
+          </div>
+          <div class="overflow-hidden flex-grow-1">
+            <div class="fw-bold text-dark text-truncate">{{ u.full_name }}</div>
+            <div class="d-flex align-items-center gap-1 mt-1">
+              <span class="badge {{ u.role_badge }} py-0" style="font-size: 0.65rem;">{{ u.role_title }}</span>
+              <small class="text-muted text-truncate">@{{ u.username }}</small>
+            </div>
+          </div>
+          <i class="bi bi-chevron-right text-muted small"></i>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block script %}
 <script>
-  // Bo‘lim bo‘yicha custom dropdown filter
-  document.querySelectorAll(".section-filter-option").forEach(item => {
-    item.addEventListener("click", function () {
-      const selected = this.getAttribute("data-value");
-      const selectedText = this.querySelector("span").innerHTML;
-      
-      // Update toggle button text
-      const labelEl = document.getElementById("selectedSectionText");
-      if (labelEl) labelEl.innerHTML = selectedText;
+  // Kartani bosganda checkboxni belgilash va kartani ajratib ko'rsatish
+  function toggleServiceCard(card, event) {
+    if (event.target.tagName.toLowerCase() === 'input' || event.target.tagName.toLowerCase() === 'label') {
+      return;
+    }
+    const checkbox = card.querySelector(".form-check-input");
+    if (checkbox) {
+      checkbox.checked = !checkbox.checked;
+      syncServiceCard(checkbox);
+    }
+  }
 
-      // Update active states
+  function syncServiceCard(checkbox) {
+    const card = checkbox.closest(".service-select-card");
+    if (card) {
+      if (checkbox.checked) {
+        card.classList.add("selected");
+      } else {
+        card.classList.remove("selected");
+      }
+    }
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('input[name="subservices"]:checked');
+    const count = checked.length;
+    const numEl = document.getElementById("selectedCountNumber");
+    const btn = document.getElementById("submitAssignBtn");
+
+    if (numEl) numEl.textContent = count;
+    if (btn) {
+      btn.disabled = count === 0;
+      if (count > 0) {
+        btn.innerHTML = `<i class="bi bi-check2-circle me-1"></i> Biriktirish (${count} ta xizmat)`;
+      } else {
+        btn.innerHTML = `<i class="bi bi-check2-circle me-1"></i> Biriktirishni saqlash`;
+      }
+    }
+  }
+
+  // Barchasini tanlash / Bekor qilish
+  const selectAllBtn = document.getElementById("selectAllBtn");
+  const selectAllBtnText = document.getElementById("selectAllBtnText");
+  let allSelected = false;
+
+  if (selectAllBtn) {
+    selectAllBtn.addEventListener("click", function() {
+      allSelected = !allSelected;
+      const visibleCheckboxes = document.querySelectorAll('.subservice-grid-item:not(.d-none) input[name="subservices"]');
+      visibleCheckboxes.forEach(cb => {
+        cb.checked = allSelected;
+        const card = cb.closest(".service-select-card");
+        if (card) {
+          if (allSelected) card.classList.add("selected");
+          else card.classList.remove("selected");
+        }
+      });
+      if (selectAllBtnText) {
+        selectAllBtnText.textContent = allSelected ? "Barchasini bekor qilish" : "Barchasini tanlash";
+      }
+      updateSelectedCount();
+    });
+  }
+
+  // Tezkor matnli qidiruv
+  const searchInput = document.getElementById("subserviceQuickSearch");
+  let activeSectionFilter = "";
+
+  function filterServices() {
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    document.querySelectorAll(".subservice-grid-item").forEach(item => {
+      const title = item.getAttribute("data-title") || "";
+      const matchesSearch = !query || title.includes(query);
+      const matchesSection = !activeSectionFilter || item.classList.contains(activeSectionFilter);
+
+      if (matchesSearch && matchesSection) {
+        item.classList.remove("d-none");
+      } else {
+        item.classList.add("d-none");
+      }
+    });
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", filterServices);
+  }
+
+  // Bo‘lim bo‘yicha custom dropdown filtri
+  document.querySelectorAll(".section-filter-option").forEach(opt => {
+    opt.addEventListener("click", function() {
+      activeSectionFilter = this.getAttribute("data-value");
+      const selectedHtml = this.querySelector("span").innerHTML;
+
+      const labelEl = document.getElementById("selectedSectionText");
+      if (labelEl) labelEl.innerHTML = selectedHtml;
+
       document.querySelectorAll(".section-filter-option").forEach(el => {
         el.classList.remove("active");
         el.querySelector(".check-icon")?.classList.add("d-none");
@@ -193,14 +471,16 @@
       this.classList.add("active");
       this.querySelector(".check-icon")?.classList.remove("d-none");
 
-      // Filter subservices list
-      document.querySelectorAll(".subservice-item").forEach(subItem => {
-        if (!selected || subItem.classList.contains(selected)) {
-          subItem.classList.remove("d-none");
-        } else {
-          subItem.classList.add("d-none");
-        }
-      });
+      filterServices();
+    });
+  });
+
+  // Dropdown ichidagi xodim qidiruvi
+  document.getElementById("operatorDropdownSearch")?.addEventListener("input", function() {
+    const q = this.value.toLowerCase().trim();
+    document.querySelectorAll(".operator-dropdown-option").forEach(opt => {
+      const text = opt.textContent.toLowerCase();
+      opt.style.display = text.includes(q) ? "" : "none";
     });
   });
 </script>
