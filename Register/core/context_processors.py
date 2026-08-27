@@ -7,12 +7,12 @@ def global_user_context(request):
     if request.user.is_authenticated:
         today = now().date()
 
-        try:
-            work_window = DailyWorkWindow.objects.get(operator=request.user, date=today)
+        work_window = DailyWorkWindow.objects.filter(operator=request.user, date=today).first()
+        if work_window:
             has_window = True
             window_number = work_window.window_number
             is_leader = work_window.is_leader
-        except DailyWorkWindow.DoesNotExist:
+        else:
             has_window = False
             window_number = None
             is_leader = False

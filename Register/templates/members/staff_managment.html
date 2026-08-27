@@ -1,110 +1,30 @@
-<!DOCTYPE html>
-{% load static django_bootstrap5 %}
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Xodimlar boshqaruvi{% endblock %}</title>
-    <!-- 🧠 Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'img/queue.ico' %}">
+{% extends 'base.html' %}
+{% load static %}
 
-    <!-- Bootstrap Icons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    {% bootstrap_css %}
-    <style>
-      :root {
-        --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);
-      }
-      body {
-        background-color: #f8fafc;
-        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      }
-      .staff-sidebar {
-        background: #ffffff;
-        border-right: 1px solid #e2e8f0;
-        min-height: calc(100vh - 140px);
-      }
-      .staff-nav-link {
-        color: #475569;
-        font-weight: 500;
-        padding: 0.75rem 1rem;
-        border-radius: 0.75rem;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-      }
-      .staff-nav-link:hover {
-        background-color: #f1f5f9;
-        color: #0d6efd;
-      }
-      .staff-nav-link.active {
-        background: var(--primary-gradient);
-        color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
-      }
-      .staff-nav-link i {
-        font-size: 1.15rem;
-      }
-      .card-dashboard {
-        background: #ffffff;
-        border-radius: 1rem;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      }
-    </style>
-</head>
-<body class="d-flex flex-column min-vh-100">
+{% block title %}Xodimlar Boshqaruvi — NamDPI Registrator{% endblock %}
 
-{% include "layout/header.html" %}
-{% include "layout/navbar.html" %}
+{% block content %}
+<div class="container-fluid px-0">
+  <!-- 🧭 Yuqori Sub-tabs Navigatsiyasi -->
+  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 rounded-4 shadow-sm border">
+    <li class="nav-item">
+      <a href="{% url 'staff-add' %}" class="nav-link rounded-pill px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'staff-add' %}active{% else %}text-secondary{% endif %}">
+        <i class="bi bi-person-plus-fill me-1"></i> Hodim qo‘shish
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'staff-list' %}" class="nav-link rounded-pill px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'staff-list' %}active{% else %}text-secondary{% endif %}">
+        <i class="bi bi-people-fill me-1"></i> Hodimlar ro‘yxati
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'assign-services' %}" class="nav-link rounded-pill px-3 py-2 fw-semibold {% if request.resolver_match.url_name == 'assign-services' %}active{% else %}text-secondary{% endif %}">
+        <i class="bi bi-diagram-3-fill me-1"></i> Bo‘lim biriktirish
+      </a>
+    </li>
+  </ul>
 
-<div class="container-fluid flex-grow-1">
-  <div class="row">
-    <!-- Sidebar -->
-    <div class="col-md-3 col-lg-2 px-0 staff-sidebar">
-      <div class="p-3">
-        <div class="text-uppercase text-secondary fw-bold px-3 mb-2" style="font-size: 0.75rem; letter-spacing: 0.8px;">
-          Xodimlar bo‘limi
-        </div>
-        <ul class="nav flex-column gap-1">
-          <li class="nav-item">
-            <a href="{% url 'staff-add' %}"
-               class="staff-nav-link {% if request.resolver_match.url_name == 'staff-add' %}active{% endif %}">
-              <i class="bi bi-person-plus-fill me-2"></i> Hodim qo‘shish
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'staff-list' %}"
-               class="staff-nav-link {% if request.resolver_match.url_name == 'staff-list' %}active{% endif %}">
-              <i class="bi bi-people-fill me-2"></i> Hodimlar ro‘yxati
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'assign-services' %}"
-               class="staff-nav-link {% if request.resolver_match.url_name == 'assign-services' %}active{% endif %}">
-              <i class="bi bi-diagram-3-fill me-2"></i> Bo‘lim biriktirish
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="col-md-9 col-lg-10 p-4">
-      {% block content %}{% endblock %}
-    </div>
-  </div>
+  <!-- 📄 Asosiy Xodimlar Kontenti -->
+  {% block staff_content %}{% endblock %}
 </div>
-
-{% include "layout/footer.html" %}
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-{% block script %}
-{% endblock script %}
-</body>
-
-</html>
-
+{% endblock %}

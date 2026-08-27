@@ -1,77 +1,149 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Statistika{% endblock %}
+{% block title %}Xodimlar Statistikasi va Tahlil — NamDPI Registrator{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <h3 class="mb-4">📊 Xodimlar statistikasi</h3>
-
-  <!-- Yil va Oy tanlash -->
-  <form method="get" class="row g-3 mb-3">
-    <div class="col-md-3">
-      <select name="year" class="form-select">
-        {% for y in years %}
-          <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
-        {% endfor %}
-      </select>
+<div class="container-fluid px-0">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-bar-chart-line-fill text-primary"></i> Xodimlar Faoliyati Statistikasi
+      </h4>
+      <p class="text-secondary small mb-0">Operatorlar tomonidan ko‘rsatilgan xizmatlar, kunlik va oylik natijalar monitoringi</p>
     </div>
-    <div class="col-md-4">
-      <select name="month" class="form-select">
-        {% for m_num, m_name in months %}
-          <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>
-            {{ m_name }}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="col-md-2">
-      <button type="submit" class="btn btn-primary w-100">Tanlash</button>
-    </div>
-  </form>
-
-  <!-- Kunlarni button ko‘rinishida -->
-  <div class="d-flex flex-wrap gap-2 mb-4">
-    {% for d in days_in_month %}
-      <a href="?year={{ selected_year }}&month={{ selected_month }}&day={{ d }}"
-         class="btn {% if selected_day|default:0 == d %}btn-success{% else %}btn-outline-secondary{% endif %}">
-         {{ d }}
-      </a>
-    {% endfor %}
-    <a href="?year={{ selected_year }}&month={{ selected_month }}" class="btn btn-warning">♻ Barchasi</a>
   </div>
 
-  <!-- Jadval -->
-  <table class="table table-bordered table-hover align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>👤 Hodim</th>
-        <th>🎭 Roli</th>
-        <th>🏢 Bo‘lim</th>
-        <th>💼 Lavozim</th>
-        <th>📅 Bugun</th>
-        <th>🗓 Shu oy</th>
-        <th>📊 Jami</th>
-        <th>⭐ Daraja</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for s in staff_stats %}
-      <tr>
-        <td>{{ s.user.full_name }}</td>
-        <td><span class="badge {{ s.user.role_badge }}">{{ s.role }}</span></td>
-        <td>{{ s.department }}</td>
-        <td>{{ s.position }}</td>
-        <td>{{ s.today }}</td>
-        <td>{{ s.this_month }}</td>
-        <td>{{ s.total }}</td>
-        <td>{{ s.level }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="8" class="text-center">Ma'lumot topilmadi</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- 🔍 Filtrlash Paneli -->
+  <div class="card-dashboard p-4 mb-4">
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label fw-semibold text-secondary small">Hisobot yili</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+          <select name="year" class="form-select">
+            {% for y in years %}
+              <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }} yil</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="form-label fw-semibold text-secondary small">Hisobot oyi</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-calendar-month"></i></span>
+          <select name="month" class="form-select">
+            {% for m_num, m_name in months %}
+              <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>
+                {{ m_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm">
+          <i class="bi bi-funnel-fill me-1"></i> Filtrlash
+        </button>
+      </div>
+    </form>
 
+    <!-- Kunlarni button ko‘rinishida -->
+    <div class="mt-4 pt-3 border-top">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small fw-semibold text-secondary">Kunlar bo‘yicha tahlil:</span>
+        <a href="?year={{ selected_year }}&month={{ selected_month }}" class="badge bg-warning text-dark text-decoration-none px-3 py-2 rounded-pill">
+          <i class="bi bi-arrow-repeat me-1"></i> Barcha kunlar (Oylik jami)
+        </a>
+      </div>
+      <div class="d-flex flex-wrap gap-1">
+        {% for d in days_in_month %}
+          <a href="?year={{ selected_year }}&month={{ selected_month }}&day={{ d }}"
+             class="btn btn-sm {% if selected_day == d|stringformat:'i' or selected_day == d %}btn-primary fw-bold shadow-sm{% else %}btn-outline-secondary border-light-subtle bg-light text-dark{% endif %} rounded-2" style="min-width: 38px;">
+             {{ d }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 Statistika Jadvali -->
+  <div class="card-dashboard p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <h5 class="fw-bold text-dark mb-0">
+        <i class="bi bi-table me-1 text-primary"></i> Operatorlar Natijalari Jadvali
+      </h5>
+      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 rounded-pill">
+        Faol operatorlar: {{ staff_stats|length }} ta
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr class="text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+            <th>Hodim (F.I.Sh)</th>
+            <th>Tizimdagi Roli</th>
+            <th>Bo‘lim & Lavozim</th>
+            <th class="text-center">Bugun</th>
+            <th class="text-center">Shu oyda</th>
+            <th class="text-center">Jami</th>
+            <th class="text-end">Daraja unvoni</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in staff_stats %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="sidebar-user-avatar">
+                  {{ s.user.first_name|first|default:s.user.username|first }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ s.user.full_name|default:s.user.username }}</div>
+                  <small class="text-muted">@{{ s.user.username }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge {{ s.user.role_badge }} rounded-pill px-3 py-1">{{ s.role }}</span>
+            </td>
+            <td>
+              <div class="text-dark fw-medium">{{ s.department }}</div>
+              <small class="text-muted">{{ s.position }}</small>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-6 px-3 py-1 font-monospace">
+                {{ s.today }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-6 px-3 py-1 font-monospace">
+                {{ s.this_month }}
+              </span>
+            </td>
+            <td class="text-center">
+              <span class="fw-bold text-dark font-monospace fs-6">
+                {{ s.total }}
+              </span>
+            </td>
+            <td class="text-end">
+              <span class="badge bg-light text-dark border px-3 py-2 rounded-pill font-monospace">
+                {{ s.level }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <div class="fs-2 mb-2">📊</div>
+              <h6>Tanlangan muddatda hech qanday xizmat ko‘rsatish ma'lumoti topilmadi</h6>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 {% endblock %}

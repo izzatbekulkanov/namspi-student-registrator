@@ -1,0 +1,146 @@
+{% load static %}
+{% with current=request.resolver_match.url_name %}
+<aside class="sidebar-pro d-flex flex-column h-100 bg-white border-end shadow-sm">
+  <!-- 🌟 Brand Header -->
+  <div class="sidebar-brand p-3 d-flex align-items-center justify-content-between border-bottom">
+    <a href="{% url 'service-dashboard' %}" class="d-flex align-items-center gap-2 text-decoration-none">
+      <div class="brand-logo-circle">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" width="34" height="34" class="img-fluid">
+      </div>
+      <div>
+        <div class="fw-bold text-dark fs-6 line-height-1">NamDPI <span class="text-primary">REG</span></div>
+        <small class="text-muted" style="font-size: 0.7rem; letter-spacing: 0.5px;">TIZIM BOSHQARUVI</small>
+      </div>
+    </a>
+    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2 py-1 small">
+      v2.0 PRO
+    </span>
+  </div>
+
+  <!-- 🧭 Navigatsiya Menyusi -->
+  <div class="sidebar-menu flex-grow-1 p-3 overflow-y-auto">
+    <!-- 1. ASOSIY BOSHQARUV -->
+    <div class="sidebar-heading text-uppercase text-secondary fw-bold mb-2" style="font-size: 0.72rem; letter-spacing: 0.8px;">
+      Asosiy Boshqaruv
+    </div>
+    <ul class="nav flex-column gap-1 mb-4">
+      <li class="nav-item">
+        <a href="{% url 'service-dashboard' %}" class="sidebar-link {% if current == 'service-dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-1x2-fill me-2"></i>
+          <span>Boshqaruv Paneli</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'operator-queue' %}" class="sidebar-link {% if current == 'operator-queue' %}active{% endif %}">
+          <i class="bi bi-person-lines-fill me-2"></i>
+          <span>Operator Navbati</span>
+          <span class="badge bg-warning text-dark ms-auto font-monospace rounded-pill px-2" id="sidebar-waiting-badge">
+            Navbat
+          </span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- 2. MONITORING VA HISOBOTLAR -->
+    <div class="sidebar-heading text-uppercase text-secondary fw-bold mb-2" style="font-size: 0.72rem; letter-spacing: 0.8px;">
+      Monitoring & Tahlil
+    </div>
+    <ul class="nav flex-column gap-1 mb-4">
+      <li class="nav-item">
+        <a href="{% url 'queue-display' %}" target="_blank" class="sidebar-link {% if current == 'queue-display' %}active{% endif %}">
+          <i class="bi bi-tv-fill me-2 text-info"></i>
+          <span>Zaldagi Monitor</span>
+          <i class="bi bi-box-arrow-up-right ms-auto small text-muted"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'statistics-display' %}" class="sidebar-link {% if current == 'statistics-display' %}active{% endif %}">
+          <i class="bi bi-bar-chart-line-fill me-2 text-success"></i>
+          <span>Statistika & Hisobot</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- 3. TIZIM VA XODIMLAR -->
+    <div class="sidebar-heading text-uppercase text-secondary fw-bold mb-2" style="font-size: 0.72rem; letter-spacing: 0.8px;">
+      Tizim & Xodimlar
+    </div>
+    <ul class="nav flex-column gap-1 mb-3">
+      <li class="nav-item">
+        <a href="{% url 'staff-add' %}" class="sidebar-link {% if current == 'staff-add' %}active{% endif %}">
+          <i class="bi bi-person-plus-fill me-2 text-primary"></i>
+          <span>Xodim qo‘shish</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'staff-list' %}" class="sidebar-link {% if current == 'staff-list' %}active{% endif %}">
+          <i class="bi bi-people-fill me-2 text-secondary"></i>
+          <span>Xodimlar ro‘yxati</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'service-services' %}" class="sidebar-link {% if current == 'service-services' %}active{% endif %}">
+          <i class="bi bi-collection-fill me-2 text-warning"></i>
+          <span>Bo‘lim & Xizmatlar</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assign-services' %}" class="sidebar-link {% if current == 'assign-services' %}active{% endif %}">
+          <i class="bi bi-diagram-3-fill me-2 text-danger"></i>
+          <span>Xizmat biriktirish</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 👤 Operator Profile Footer Widget -->
+  <div class="sidebar-footer p-3 border-top bg-light">
+    {% if user.is_authenticated %}
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2 overflow-hidden">
+        <div class="sidebar-user-avatar">
+          {{ user.first_name|first|default:user.username|first }}{{ user.last_name|first|default:"" }}
+        </div>
+        <div class="overflow-hidden">
+          <div class="fw-bold text-dark text-truncate small" title="{{ user.full_name|default:user.username }}">
+            {{ user.full_name|default:user.username }}
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            {% if is_leader %}
+              <span class="badge bg-info text-dark rounded-pill px-2 py-0" style="font-size: 0.65rem;">Rahbar</span>
+            {% elif window_number %}
+              <span class="badge bg-primary text-white rounded-pill px-2 py-0" style="font-size: 0.65rem;">Oyna #{{ window_number }}</span>
+            {% else %}
+              <span class="badge bg-warning text-dark rounded-pill px-2 py-0" style="font-size: 0.65rem;">Oyna yo‘q</span>
+            {% endif %}
+            <span class="small text-muted font-monospace" style="font-size: 0.7rem;">{{ level_icon }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary border-0 p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+          <li>
+            <button class="dropdown-item small" type="button" data-bs-toggle="modal" data-bs-target="#windowModal">
+              <i class="bi bi-window-dock me-2 text-primary"></i> Oynani sozlash
+            </button>
+          </li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li>
+            <form method="POST" action="{% url 'logout' %}" class="m-0">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item small text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i> Chiqish
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</aside>
+{% endwith %}

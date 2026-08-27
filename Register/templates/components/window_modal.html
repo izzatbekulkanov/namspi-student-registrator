@@ -1,0 +1,82 @@
+<!-- 🪟 Global Daily Window Modal Component -->
+<div class="modal fade" id="windowModal" tabindex="-1" aria-labelledby="windowModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="p-4 text-white text-center position-relative" style="background: linear-gradient(135deg, #0d6efd 0%, #1e40af 100%);">
+        <div class="rounded-circle bg-white bg-opacity-25 d-inline-flex align-items-center justify-content-center mb-2" style="width: 56px; height: 56px;">
+          <i class="bi bi-window-dock fs-2 text-white"></i>
+        </div>
+        <h5 class="fw-bold mb-1" id="windowModalLabel">Kunlik Ish Oynasi</h5>
+        <p class="small mb-0 opacity-75">Bugungi xizmat ko‘rsatish oyna raqamingizni belgilang</p>
+        {% if has_window %}
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        {% endif %}
+      </div>
+
+      <form id="windowForm" method="POST" action="{% url 'set-daily-window' %}" class="p-4 bg-white">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="is_leader_select" class="form-label fw-semibold text-secondary small">Faoliyat turi / Rol</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light text-secondary"><i class="bi bi-person-badge"></i></span>
+            <select id="is_leader_select" name="is_leader" class="form-select" required>
+              <option value="no" {% if not is_leader %}selected{% endif %}>🟢 Operator (Oynada xizmat ko‘rsatish)</option>
+              <option value="yes" {% if is_leader %}selected{% endif %}>🔵 Rahbar / Nazoratchi (Oynasiz)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-4" id="window_number_group">
+          <label for="window_number_input" class="form-label fw-semibold text-secondary small">
+            Oyna raqami <span class="text-danger">*</span>
+          </label>
+          <div class="input-group input-group-lg">
+            <span class="input-group-text bg-light text-secondary"><i class="bi bi-hash"></i></span>
+            <input type="number" id="window_number_input" name="window_number" min="1" max="99"
+                   value="{{ window_number|default:'' }}"
+                   class="form-control fw-bold font-monospace text-primary text-center fs-3"
+                   placeholder="Masalan: 1" required>
+          </div>
+          <div class="form-text small text-muted text-center mt-1">Zaldagi ekranda mijozlarga shu oyna raqami ko‘rsatiladi</div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary py-2 fw-semibold rounded-3 shadow-sm" style="background: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);">
+            <i class="bi bi-check2-circle me-1"></i> Saqlash va Tasdiqlash
+          </button>
+          {% if has_window %}
+          <button type="button" class="btn btn-light py-2 rounded-3 text-secondary" data-bs-dismiss="modal">
+            Yopish
+          </button>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const isLeader = document.getElementById("is_leader_select");
+    const winGroup = document.getElementById("window_number_group");
+    const winInput = document.getElementById("window_number_input");
+
+    function updateWindowField() {
+      if (!isLeader || !winGroup || !winInput) return;
+      if (isLeader.value === "yes") {
+        winGroup.style.display = "none";
+        winInput.removeAttribute("required");
+        winInput.value = "";
+      } else {
+        winGroup.style.display = "block";
+        winInput.setAttribute("required", "required");
+      }
+    }
+
+    if (isLeader) {
+      isLeader.addEventListener("change", updateWindowField);
+      updateWindowField();
+    }
+  });
+</script>

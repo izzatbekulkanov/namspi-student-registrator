@@ -1,343 +1,374 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Boshqaruv Paneli — NamDPI Registrator PRO{% endblock %}
+
 {% block content %}
 <style>
-    .rank-card {
-        border-radius: 1rem;
-        padding: 1.5rem;
-        text-align: center;
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        position: relative;
-    }
+  /* 🌟 HERO BANNER */
+  .hero-banner-pro {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0d6efd 100%);
+    color: #ffffff;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(13, 110, 253, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-banner-pro::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
 
-    .rank-card .icon {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-    }
+  /* 📊 METRIC STAT CARDS */
+  .stat-card-pro {
+    background: #ffffff;
+    border-radius: 1.15rem;
+    padding: 1.5rem;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+    height: 100%;
+  }
+  .stat-card-pro:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  }
+  .stat-icon-wrapper {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+  }
 
-    .rank-card .title {
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
+  /* 🚀 QUICK ACTION CARDS */
+  .action-card-pro {
+    background: #ffffff;
+    border-radius: 1.15rem;
+    padding: 1.5rem;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.25s ease;
+  }
+  .action-card-pro:hover {
+    color: inherit;
+    transform: translateY(-4px);
+    border-color: #3b82f6;
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12);
+  }
+  .action-card-pro:hover .action-icon {
+    transform: scale(1.1);
+  }
+  .action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: transform 0.2s ease;
+    margin-bottom: 1rem;
+  }
 
-    .rank-card .count {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
-
-    /* 🔰 Daraja effektlari */
-
-    .rank-beginner {
-        border: 2px solid #28a745;
-    }
-
-    .rank-ordinary {
-        border: 2px solid #ffc107;
-        animation: glow-yellow 2.5s infinite ease-in-out;
-    }
-
-    .rank-good {
-        border: 2px solid #0d6efd;
-        background: linear-gradient(135deg, #e8f0ff, #ffffff);
-        animation: pulse-blue 2.5s infinite;
-    }
-
-    .rank-master {
-        border: 3px double #dc3545;
-        background: linear-gradient(135deg, #ffe6e6, #ffffff);
-        animation: fire-pulse 2.2s infinite;
-    }
-
-    .rank-vip {
-        color: black;
-        border: 3px solid gold;
-        background: linear-gradient(135deg, #fff9c4, #ffffff);
-        box-shadow: 0 0 20px gold;
-        animation: gold-shine 3s infinite;
-    }
-
-    @keyframes glow-yellow {
-        0% {
-            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.3);
-        }
-        70% {
-            box-shadow: 0 0 10px 10px rgba(255, 193, 7, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
-        }
-    }
-
-    @keyframes pulse-blue {
-        0% {
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
-        }
-        70% {
-            box-shadow: 0 0 12px 12px rgba(13, 110, 253, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
-        }
-    }
-
-    @keyframes fire-pulse {
-        0% {
-            box-shadow: 0 0 10px 0 rgba(255, 69, 0, 0.4);
-        }
-        50% {
-            box-shadow: 0 0 20px 10px rgba(255, 69, 0, 0.2);
-        }
-        100% {
-            box-shadow: 0 0 10px 0 rgba(255, 69, 0, 0.4);
-        }
-    }
-
-    @keyframes gold-shine {
-        0% {
-            box-shadow: 0 0 12px 2px rgba(255, 215, 0, 0.6);
-        }
-        50% {
-            box-shadow: 0 0 24px 8px rgba(255, 215, 0, 0.3);
-        }
-        100% {
-            box-shadow: 0 0 12px 2px rgba(255, 215, 0, 0.6);
-        }
-    }
-
-    .rank-beginner {
-        border: 2px solid #28a745 !important;
-    }
-
-    .rank-ordinary {
-        border: 2px solid #ffc107 !important;
-        animation: glow-yellow 2s infinite ease-in-out;
-    }
-
-    .rank-good {
-        border: 2px solid #0d6efd !important;
-        background: linear-gradient(135deg, #e9f1ff, #ffffff);
-        animation: pulse-blue 2.5s infinite;
-    }
-
-    .rank-master {
-        border: 3px double #dc3545 !important;
-        background: linear-gradient(135deg, #ffe6e6, #fff);
-        animation: fire-pulse 2.5s infinite;
-    }
-
-    .rank-vip {
-        border: 3px solid gold !important;
-        background: linear-gradient(135deg, #fff7d1, #fff);
-        animation: gold-glow 3s infinite;
-        box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
-    }
-
-    @keyframes glow-yellow {
-        0% {
-            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
-        }
-        70% {
-            box-shadow: 0 0 12px 8px rgba(255, 193, 7, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
-        }
-    }
-
-    @keyframes pulse-blue {
-        0% {
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
-        }
-        70% {
-            box-shadow: 0 0 16px 10px rgba(13, 110, 253, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.3);
-        }
-    }
-
-    @keyframes fire-pulse {
-        0% {
-            box-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
-        }
-        50% {
-            box-shadow: 0 0 20px rgba(255, 69, 0, 0.2);
-        }
-        100% {
-            box-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
-        }
-    }
-
-    @keyframes gold-glow {
-        0% {
-            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
-        }
-        50% {
-            box-shadow: 0 0 24px rgba(255, 215, 0, 0.3);
-        }
-        100% {
-            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
-        }
-    }
+  /* 🎖 RANK LEVEL TILES */
+  .rank-tile {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    border: 2px solid #e2e8f0;
+    transition: all 0.25s ease;
+    height: 100%;
+  }
+  .rank-tile:hover {
+    transform: translateY(-3px);
+  }
+  .rank-tile.active-level {
+    border-color: #ffc107;
+    background: linear-gradient(145deg, #fffbeb, #ffffff);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+    position: relative;
+  }
 </style>
 
-<div class="container py-4">
+<div class="container-fluid px-0">
+  <!-- 🌟 1. HERO GREETING BANNER -->
+  <div class="hero-banner-pro mb-4">
+    <div class="row align-items-center g-3 position-relative" style="z-index: 1;">
+      <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 small">
+            <span class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px;" role="status"></span>
+            Tizim faoliyatda
+          </span>
+          <span class="badge bg-primary text-white rounded-pill px-3 py-1 small">
+            {{ request.user.role_title }}
+          </span>
+        </div>
+        <h2 class="fw-bold text-white mb-1" id="greetingHeading">
+          Xush kelibsiz, {{ request.user.full_name|default:request.user.username }}!
+        </h2>
+        <p class="text-white-50 mb-0">
+          Namangan Davlat Pedagogika Instituti — Registrator elektron navbat boshqaruv markazi.
+        </p>
+      </div>
+      <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
+        <a href="{% url 'operator-queue' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold shadow text-primary d-inline-flex align-items-center gap-2">
+          <i class="bi bi-play-circle-fill fs-5"></i> Operator Navbati
+        </a>
+      </div>
+    </div>
+  </div>
 
-    <div class="mb-4 text-center">
-        <h2 class="fw-bold">Xush kelibsiz, {{ request.user.full_name }}</h2>
-        <p class="text-muted">Bugungi ish faoliyatingiz statistikasi</p>
+  <!-- 📊 2. METRIKA STATISTIKA KARTALARI (4 TA) -->
+  <div class="row g-4 mb-4">
+    <!-- Bugungi xizmatlar -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card-pro">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Bugun xizmat</div>
+          <div class="display-6 fw-bold text-success font-monospace my-1">{{ today_count }}</div>
+          <div class="small text-muted"><i class="bi bi-clock me-1"></i>Bugun qabul qilingan</div>
+        </div>
+        <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+      </div>
     </div>
 
-    <!-- Statistika kartalari -->
-    <div class="row g-4 justify-content-center">
-
-        <!-- Bugungi xizmatlar -->
-        <div class="col-md-4">
-            <div class="card border-primary shadow-sm rounded-4">
-                <div class="card-body text-center">
-                    <div class="display-5 text-primary fw-bold">{{ today_count }}</div>
-                    <p class="card-text fs-5">Bugun xizmat ko‘rsatilganlar</p>
-                </div>
-            </div>
+    <!-- Umumiy xizmatlar -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card-pro">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Umumiy xizmat</div>
+          <div class="display-6 fw-bold text-primary font-monospace my-1">{{ total_count }}</div>
+          <div class="small text-muted"><i class="bi bi-award me-1"></i>Jami faoliyat davomida</div>
         </div>
-
-        <!-- Umumiy xizmatlar -->
-        <div class="col-md-4">
-            <div class="card border-success shadow-sm rounded-4">
-                <div class="card-body text-center">
-                    <div class="display-5 text-success fw-bold">{{ total_count }}</div>
-                    <p class="card-text fs-5">Umumiy xizmatlar soni</p>
-                </div>
-            </div>
+        <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-activity"></i>
         </div>
-
-        <!-- Daraja -->
-        <div class="col-md-4">
-            <div class="card shadow-sm rounded-4 {{ level_class }}">
-                <div class="card-body text-center">
-                    <div class="display-5 fw-bold">{{ level_icon }}</div>
-                    <p class="card-text fs-5">Darajangiz: <strong class="text-dark">{{ level }}</strong></p>
-                </div>
-            </div>
-        </div>
-
+      </div>
     </div>
-</div>
 
-<!-- 🔰 Darajalar ro‘yxati -->
-
-<div class="container my-5">
-    <h4 class="text-center text-primary fw-bold mb-4">🎖 Operator Darajalar</h4>
-    <div class="row justify-content-center g-4">
-
-        <div class="col-md-2 col-6">
-            <div class="rank-card rank-beginner">
-                <div class="icon">🟢</div>
-                <div class="title">Boshlovchi</div>
-                <div class="count">0+ xizmat</div>
-            </div>
+    <!-- Bugungi ish oynasi -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card-pro">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Ish Oynasi</div>
+          <div class="h3 fw-bold text-dark font-monospace my-2">
+            {% if is_leader %}
+              <span class="text-info">Rahbar</span>
+            {% elif window_number %}
+              <span class="text-primary">{{ window_number }} - oyna</span>
+            {% else %}
+              <span class="text-warning fs-5">Kiritilmagan</span>
+            {% endif %}
+          </div>
+          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#windowModal">
+            <i class="bi bi-pencil-square me-1"></i> O‘zgartirish
+          </button>
         </div>
-
-        <div class="col-md-2 col-6">
-            <div class="rank-card rank-ordinary">
-                <div class="icon">⭐</div>
-                <div class="title">Oddiy</div>
-                <div class="count">50+ xizmat</div>
-            </div>
+        <div class="stat-icon-wrapper bg-info bg-opacity-10 text-info">
+          <i class="bi bi-window-dock"></i>
         </div>
-
-        <div class="col-md-2 col-6">
-            <div class="rank-card rank-good">
-                <div class="icon">🌟</div>
-                <div class="title">Yaxshi</div>
-                <div class="count">150+ xizmat</div>
-            </div>
-        </div>
-
-        <div class="col-md-2 col-6">
-            <div class="rank-card rank-master">
-                <div class="icon">🔥</div>
-                <div class="title">Usta</div>
-                <div class="count">300+ xizmat</div>
-            </div>
-        </div>
-
-        <div class="col-md-2 col-6">
-            <div class="rank-card rank-vip text-danger">
-                <div class="icon">👑</div>
-                <div class="title">VIP</div>
-                <div class="count">500+ xizmat</div>
-            </div>
-        </div>
-
+      </div>
     </div>
-</div>
 
-<!-- ✅ Modal: Oyna raqamini tanlash -->
-<div class="modal fade" id="windowModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static"
-     data-bs-keyboard="false">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content bg-white rounded-4 shadow p-3">
-            <form id="windowForm" method="POST" action="{% url 'set-daily-window' %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <h5 class="text-center mb-3">Iltimos, bugungi ish oyna raqamingizni kiriting:</h5>
-
-                    <div class="mb-3">
-                        <label for="window_number" class="form-label">Oyna raqami</label>
-                        <input type="number" id="window_number" name="window_number" min="1" required
-                               class="form-control" placeholder="Masalan: 3">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="is_leader" class="form-label">Rahbarmisiz?</label>
-                        <select id="is_leader" name="is_leader" class="form-select" required>
-                            <option value="" disabled selected>Tanlang</option>
-                            <option value="yes">Ha</option>
-                            <option value="no">Yo‘q</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">Saqlash</button>
-                </div>
-            </form>
+    <!-- Operator Darajasi -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card-pro">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing: 0.5px;">Darajangiz</div>
+          <div class="h4 fw-bold text-dark my-2 d-flex align-items-center gap-1">
+            <span>{{ level_icon }}</span> <span>{{ level }}</span>
+          </div>
+          <div class="small text-muted"><i class="bi bi-stars me-1"></i>Faoliyat unvoni</div>
         </div>
+        <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- 🚀 3. TEZKOR AMALLAR VA MODULLAR -->
+  <div class="mb-4">
+    <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+      <i class="bi bi-grid-fill text-primary"></i> Asosiy Xizmat Modullari
+    </h5>
+    <div class="row g-4">
+      <!-- Operator Navbati -->
+      <div class="col-md-6 col-xl-3">
+        <a href="{% url 'operator-queue' %}" class="action-card-pro">
+          <div class="action-icon bg-primary bg-opacity-10 text-primary">
+            <i class="bi bi-person-lines-fill"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-1">Operator Navbati</h6>
+          <p class="small text-secondary mb-3 flex-grow-1">Mijozlarni qabul qilish, navbatni boshqarish va xizmat ko‘rsatish stoli.</p>
+          <div class="text-primary fw-semibold small d-flex align-items-center gap-1">
+            Navbatga o‘tish <i class="bi bi-arrow-right"></i>
+          </div>
+        </a>
+      </div>
+
+      <!-- Katta Monitor Ekran -->
+      <div class="col-md-6 col-xl-3">
+        <a href="{% url 'queue-display' %}" target="_blank" class="action-card-pro">
+          <div class="action-icon bg-info bg-opacity-10 text-info">
+            <i class="bi bi-tv-fill"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-1">Zaldagi Monitor Ekran</h6>
+          <p class="small text-secondary mb-3 flex-grow-1">Kutish zalidagi katta TV ekranda navbatlar va e’lonlar taxtasi.</p>
+          <div class="text-info fw-semibold small d-flex align-items-center gap-1">
+            Ekranni ochish <i class="bi bi-box-arrow-up-right"></i>
+          </div>
+        </a>
+      </div>
+
+      <!-- Xodimlar Boshqaruvi -->
+      <div class="col-md-6 col-xl-3">
+        <a href="{% url 'staff-add' %}" class="action-card-pro">
+          <div class="action-icon bg-success bg-opacity-10 text-success">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-1">Xodimlar Boshqaruvi</h6>
+          <p class="small text-secondary mb-3 flex-grow-1">Yangi operatorlarni ro‘yxatdan o‘tkazish, tahrirlash va xizmat biriktirish.</p>
+          <div class="text-success fw-semibold small d-flex align-items-center gap-1">
+            Boshqarish <i class="bi bi-arrow-right"></i>
+          </div>
+        </a>
+      </div>
+
+      <!-- Statistika & Tahlil -->
+      <div class="col-md-6 col-xl-3">
+        <a href="{% url 'statistics-display' %}" class="action-card-pro">
+          <div class="action-icon bg-warning bg-opacity-10 text-warning">
+            <i class="bi bi-bar-chart-line-fill"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-1">Statistika va Tahlil</h6>
+          <p class="small text-secondary mb-3 flex-grow-1">Oylik va kunlik hisobotlar, xodimlar reytingi va xizmat samaradorligi.</p>
+          <div class="text-warning fw-semibold small d-flex align-items-center gap-1">
+            Hisobotlarni ko‘rish <i class="bi bi-arrow-right"></i>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎖 4. OPERATOR DARAJALARI (GAMIFICATION) -->
+  <div class="card-dashboard p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+          <i class="bi bi-award-fill text-warning"></i> Operator Darajalar Tizimi
+        </h5>
+        <p class="text-secondary small mb-0">Xizmatlar soniga qarab operatorlik unvoni va nishonlari oshib boradi</p>
+      </div>
+      <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+        Sizning natijangiz: <strong>{{ total_count }} ta xizmat</strong>
+      </span>
+    </div>
+
+    <div class="row g-3">
+      <!-- 1. Boshlovchi -->
+      <div class="col">
+        <div class="rank-tile {% if level == 'Boshlovchi' %}active-level{% endif %}">
+          <div class="fs-2 mb-1">🟢</div>
+          <div class="fw-bold text-dark small">Boshlovchi</div>
+          <div class="text-muted small">0+ xizmat</div>
+          {% if level == 'Boshlovchi' %}
+            <span class="badge bg-success rounded-pill px-2 py-0 mt-2" style="font-size: 0.65rem;">Sizda</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 2. Oddiy -->
+      <div class="col">
+        <div class="rank-tile {% if level == 'Oddiy' %}active-level{% endif %}">
+          <div class="fs-2 mb-1">⭐</div>
+          <div class="fw-bold text-dark small">Oddiy</div>
+          <div class="text-muted small">50+ xizmat</div>
+          {% if level == 'Oddiy' %}
+            <span class="badge bg-primary rounded-pill px-2 py-0 mt-2" style="font-size: 0.65rem;">Sizda</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 3. Yaxshi -->
+      <div class="col">
+        <div class="rank-tile {% if level == 'Yaxshi' %}active-level{% endif %}">
+          <div class="fs-2 mb-1">🌟</div>
+          <div class="fw-bold text-dark small">Yaxshi</div>
+          <div class="text-muted small">150+ xizmat</div>
+          {% if level == 'Yaxshi' %}
+            <span class="badge bg-warning text-dark rounded-pill px-2 py-0 mt-2" style="font-size: 0.65rem;">Sizda</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 4. Usta -->
+      <div class="col">
+        <div class="rank-tile {% if level == 'Usta' %}active-level{% endif %}">
+          <div class="fs-2 mb-1">🔥</div>
+          <div class="fw-bold text-dark small">Usta</div>
+          <div class="text-muted small">300+ xizmat</div>
+          {% if level == 'Usta' %}
+            <span class="badge bg-danger rounded-pill px-2 py-0 mt-2" style="font-size: 0.65rem;">Sizda</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- 5. VIP -->
+      <div class="col">
+        <div class="rank-tile {% if level == 'VIP' %}active-level{% endif %}">
+          <div class="fs-2 mb-1">👑</div>
+          <div class="fw-bold text-dark small">VIP</div>
+          <div class="text-muted small">500+ xizmat</div>
+          {% if level == 'VIP' %}
+            <span class="badge bg-dark rounded-pill px-2 py-0 mt-2" style="font-size: 0.65rem;">Sizda</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block script %}
 <script>
-    {% if not has_window %}
-    const modal = new bootstrap.Modal(document.getElementById('windowModal'), {
-        backdrop: 'static',
-        keyboard: false
-    });
-    modal.show();
-    {% endif %}
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const windowInput = document.getElementById("window_number");
-        const isLeaderSelect = document.getElementById("is_leader");
-
-        function toggleWindowInput() {
-            if (isLeaderSelect.value === "yes") {
-                windowInput.value = '';
-                windowInput.setAttribute("disabled", "disabled");
-                windowInput.removeAttribute("required");
-            } else if (isLeaderSelect.value === "no") {
-                windowInput.removeAttribute("disabled");
-                windowInput.setAttribute("required", "required");
-            }
-        }
-
-        isLeaderSelect.addEventListener("change", toggleWindowInput);
-
-        // Ekran yuklanganda tanlangan qiymatga qarab tekshirish
-        toggleWindowInput();
-    });
+  // Kun vaqtiga qarab salomlashish
+  document.addEventListener("DOMContentLoaded", function () {
+    const hour = new Date().getHours();
+    const heading = document.getElementById("greetingHeading");
+    if (heading) {
+      let greeting = "Xush kelibsiz";
+      if (hour >= 5 && hour < 11) greeting = "Xayrli tong";
+      else if (hour >= 11 && hour < 17) greeting = "Xayrli kun";
+      else if (hour >= 17 && hour < 22) greeting = "Xayrli kech";
+      
+      const userName = "{{ request.user.full_name|default:request.user.username }}";
+      heading.textContent = `${greeting}, ${userName}!`;
+    }
+  });
 </script>
 {% endblock %}

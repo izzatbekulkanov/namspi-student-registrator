@@ -2,35 +2,241 @@
 {% load static django_bootstrap5 %}
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Registrator{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Registrator — Boshqaruv Tizimi{% endblock %}</title>
 
-    <!-- 🧠 Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'img/queue.ico' %}">
+  <!-- 🧠 Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static 'img/queue.ico' %}">
 
-    <!-- Bootstrap Icons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    {% bootstrap_css %}
+  <!-- Bootstrap Icons CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  {% bootstrap_css %}
 
+  <style>
+    :root {
+      --sidebar-width: 260px;
+      --primary-color: #0d6efd;
+      --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);
+      --bg-light: #f8fafc;
+      --card-border: #e2e8f0;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* 🧱 APP WRAPPER LAYOUT */
+    .app-layout {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 100vh;
+    }
+
+    /* 🧭 DESKTOP SIDEBAR */
+    .app-sidebar-desktop {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 1020;
+    }
+
+    /* 📱 MAIN CONTENT WRAPPER */
+    .app-main {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background-color: var(--bg-light);
+    }
+
+    .app-content {
+      flex: 1 1 auto;
+      padding: 1.5rem;
+    }
+
+    /* 🎨 SIDEBAR STYLES */
+    .sidebar-pro {
+      font-size: 0.9rem;
+    }
+
+    .sidebar-link {
+      color: #475569;
+      font-weight: 500;
+      padding: 0.65rem 0.9rem;
+      border-radius: 0.65rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .sidebar-link:hover {
+      background-color: #f1f5f9;
+      color: var(--primary-color);
+      transform: translateX(3px);
+    }
+
+    .sidebar-link.active {
+      background: var(--primary-gradient);
+      color: #ffffff !important;
+      box-shadow: 0 4px 14px rgba(13, 110, 253, 0.28);
+      font-weight: 600;
+    }
+
+    .sidebar-link.active i {
+      color: #ffffff !important;
+    }
+
+    .brand-logo-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(13, 110, 253, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-user-avatar, .user-avatar-sm {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      color: white;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+    }
+
+    /* 👑 RANK BADGES */
+    .rank-badge-pill {
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .rank-vip { background: linear-gradient(90deg, #ff0080, #7928ca); color: white; }
+    .rank-usta { background: linear-gradient(45deg, #ff6a00, #ee0979); color: white; }
+    .rank-yaxshi { background: #ffd700; color: #000; }
+    .rank-oddiy { background: #0d6efd; color: white; }
+    .rank-boshlovchi { background: #198754; color: white; }
+
+    /* 📦 CARDS & WIDGETS */
+    .card-dashboard {
+      background: #ffffff;
+      border-radius: 1.1rem;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-dashboard:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    }
+
+    /* 📜 CUSTOM SCROLLBARS */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
+  </style>
+
+  {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-light text-dark d-flex flex-column min-vh-100">
+<body>
 
-{% include "layout/header.html" %}
-{% include "layout/navbar.html" %}
+<div class="app-layout">
+  <!-- 🧭 1. DESKTOP SIDEBAR (Katta ekranlar uchun) -->
+  <div class="app-sidebar-desktop d-none d-lg-block">
+    {% include "layout/sidebar.html" %}
+  </div>
 
-<main class="container flex-grow-1 py-4">
-    {% block content %}{% endblock %}
-</main>
+  <!-- 📱 2. MOBILE OFFCANVAS SIDEBAR (Kichik ekranlar uchun) -->
+  <div class="offcanvas offcanvas-start p-0 d-lg-none" tabindex="-1" id="sidebarOffcanvas" style="width: var(--sidebar-width);">
+    <div class="offcanvas-header border-bottom py-2">
+      <div class="d-flex align-items-center gap-2">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" width="28" height="28">
+        <span class="fw-bold fs-6">NamDPI REG</span>
+      </div>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      {% include "layout/sidebar.html" %}
+    </div>
+  </div>
 
-{% include "layout/footer.html" %}
+  <!-- 🖥️ 3. MAIN APP AREA (Header + Content + Footer) -->
+  <div class="app-main">
+    <!-- Header -->
+    {% include "layout/header.html" %}
 
-<!-- Bootstrap JS (Bundle includes Popper) -->
+    <!-- Asosiy Sahifa Kontenti -->
+    <main class="app-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% include "layout/footer.html" %}
+  </div>
+</div>
+
+<!-- 🪟 Global Oyna Sozlash Modali -->
+{% include "components/window_modal.html" %}
+
+<!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script>
+  // Jonli Header Soati
+  function updateHeaderClock() {
+    const el = document.getElementById("headerLiveClock");
+    if (el) {
+      const now = new Date();
+      el.textContent = now.toLocaleTimeString('uz-UZ');
+    }
+  }
+  setInterval(updateHeaderClock, 1000);
+  updateHeaderClock();
 
-{% block script %}
-{% endblock script %}
+  // Agar operator oyna raqamini kiritmagan bo'lsa, avtomatik modal ochish
+  {% if user.is_authenticated and not has_window %}
+  document.addEventListener("DOMContentLoaded", function () {
+    const winModalEl = document.getElementById("windowModal");
+    if (winModalEl) {
+      const winModal = new bootstrap.Modal(winModalEl);
+      winModal.show();
+    }
+  });
+  {% endif %}
+
+  // Django Messages / Swal Toasts
+  {% if messages %}
+    {% for message in messages %}
+      Swal.fire({
+        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+        title: "{{ message|escapejs }}",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    {% endfor %}
+  {% endif %}
+</script>
+
+{% block script %}{% endblock script %}
 </body>
-
 </html>
