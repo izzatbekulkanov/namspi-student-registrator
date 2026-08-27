@@ -17,6 +17,11 @@ async function logToFile(message, level = 'INFO') {
 }
 
 app.whenReady().then(async () => {
+    app.setLoginItemSettings({
+        openAtLogin: true,
+        path: app.getPath("exe")
+    });
+
     await logToFile('Ilova ishga tushmoqda');
 
     const userDataPath = path.join(app.getPath('userData'), 'CustomCache', 'namdpi-queue-app');
