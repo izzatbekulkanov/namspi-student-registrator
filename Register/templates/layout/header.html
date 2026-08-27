@@ -58,15 +58,32 @@
       <div class="dropdown ms-1">
         <button class="btn btn-sm btn-light border d-flex align-items-center gap-2 px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           <div class="user-avatar-sm">
-            {{ user.first_name|first|default:user.username|first }}
+            {% if user.first_name and user.last_name %}
+              {{ user.first_name|first }}{{ user.last_name|first }}
+            {% elif user.first_name %}
+              {{ user.first_name|first }}
+            {% else %}
+              <i class="bi bi-person-fill"></i>
+            {% endif %}
           </div>
           <span class="fw-semibold text-dark small d-none d-md-inline">{{ user.username }}</span>
           <i class="bi bi-chevron-down small text-muted"></i>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2" style="min-width: 220px;">
-          <li class="px-3 py-2 border-bottom">
-            <div class="fw-bold text-dark small">{{ user.full_name|default:user.username }}</div>
-            <div class="text-muted small" style="font-size: 0.75rem;">{{ user.role_title }}</div>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2" style="min-width: 240px;">
+          <li class="px-3 py-2 border-bottom d-flex align-items-center gap-2">
+            <div class="user-avatar-sm">
+              {% if user.first_name and user.last_name %}
+                {{ user.first_name|first }}{{ user.last_name|first }}
+              {% elif user.first_name %}
+                {{ user.first_name|first }}
+              {% else %}
+                <i class="bi bi-person-fill"></i>
+              {% endif %}
+            </div>
+            <div class="overflow-hidden">
+              <div class="fw-bold text-dark small text-truncate">{{ user.full_name|default:user.username }}</div>
+              <div class="text-muted small" style="font-size: 0.75rem;">{{ user.role_title }} &bull; @{{ user.username }}</div>
+            </div>
           </li>
           <li>
             <button class="dropdown-item small py-2" type="button" data-bs-toggle="modal" data-bs-target="#windowModal">

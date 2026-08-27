@@ -285,18 +285,28 @@
       justify-content: center;
     }
 
-    .user-avatar-sm {
-      width: 32px;
-      height: 32px;
+    /* 👤 USER AVATARS */
+    .user-avatar-sm, .sidebar-user-avatar, .staff-avatar {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
       border-radius: var(--radius-sm);
-      background: var(--primary-gradient);
-      color: white;
+      background: linear-gradient(135deg, #0d6efd 0%, #1e40af 100%);
+      color: #ffffff !important;
       font-weight: 700;
-      font-size: 0.8rem;
-      display: flex;
+      font-size: 0.82rem;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(13, 110, 253, 0.25);
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .user-avatar-sm i, .sidebar-user-avatar i, .staff-avatar i {
+      color: #ffffff !important;
+      font-size: 1.1rem;
     }
 
     /* 👑 RANK BADGES */

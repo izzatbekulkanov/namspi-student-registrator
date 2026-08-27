@@ -1,20 +1,117 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Xodimlar Statistikasi va Tahlil — NamDPI Registrator{% endblock %}
+{% block title %}Xodimlar Faoliyati Statistikasi — NamDPI Registrator{% endblock %}
 
 {% block content %}
+<style>
+  .stat-summary-card {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--card-border);
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    transition: transform 0.15s ease;
+  }
+  .stat-summary-card:hover {
+    transform: translateY(-2px);
+  }
+  .stat-summary-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+  }
+  .table-stat-cell-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+</style>
+
 <div class="container-fluid px-0">
+  <!-- 🌟 Sahifa Sarlavhasi -->
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
       <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
         <i class="bi bi-bar-chart-line-fill text-primary"></i> Xodimlar Faoliyati Statistikasi
       </h5>
-      <p class="text-secondary small mb-0">Operatorlar tomonidan ko‘rsatilgan xizmatlar, kunlik va oylik natijalar monitoringi</p>
+      <p class="text-secondary small mb-0">
+        {{ selected_month_name }} {{ selected_year }} y. — har bir operator bo‘yicha qabul qilingan, rad etilgan va jami xizmatlar tahlili
+      </p>
     </div>
   </div>
 
-  <!-- 🔍 Filtrlash Paneli -->
+  <!-- 📊 1. UMUMIY STATISTIKA KARTALARI -->
+  <div class="row g-3 mb-4">
+    <!-- Shu oyda qabul qilindi -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-summary-card">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">{{ selected_month_name }}da Qabul</div>
+          <div class="h3 fw-bold text-success font-monospace my-1">{{ summary.month_completed }}</div>
+          <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-check2-circle text-success me-1"></i>Muvaffaqiyatli bajarilgan</div>
+        </div>
+        <div class="stat-summary-icon bg-success bg-opacity-10 text-success">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shu oyda rad etildi -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-summary-card">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">{{ selected_month_name }}da Rad etilgan</div>
+          <div class="h3 fw-bold text-danger font-monospace my-1">{{ summary.month_rejected }}</div>
+          <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-x-circle text-danger me-1"></i>Bekor qilingan xizmatlar</div>
+        </div>
+        <div class="stat-summary-icon bg-danger bg-opacity-10 text-danger">
+          <i class="bi bi-person-x-fill"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shu oyda Jami -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-summary-card">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">{{ selected_month_name }}da Jami Xizmat</div>
+          <div class="h3 fw-bold text-primary font-monospace my-1">{{ summary.month_total }}</div>
+          <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-calendar-check text-primary me-1"></i>Oylik umumiy murojaatlar</div>
+        </div>
+        <div class="stat-summary-icon bg-primary bg-opacity-10 text-primary">
+          <i class="bi bi-activity"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bugungi qabul va rad -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-summary-card">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Bugungi Xizmatlar</div>
+          <div class="h4 fw-bold text-dark font-monospace my-1">
+            <span class="text-success">{{ summary.today_completed }}</span> / <span class="text-danger">{{ summary.today_rejected }}</span>
+          </div>
+          <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-clock me-1"></i>Bugun jami: <strong>{{ summary.today_total }} ta</strong></div>
+        </div>
+        <div class="stat-summary-icon bg-info bg-opacity-10 text-info">
+          <i class="bi bi-clock-history"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔍 2. FILTRLASH PANELI -->
   <div class="card-dashboard p-3 p-md-4 mb-4">
     <form method="get" class="row g-3 align-items-end">
       <div class="col-sm-6 col-md-3">
@@ -48,7 +145,7 @@
       </div>
     </form>
 
-    <!-- Kunlarni button ko‘rinishida -->
+    <!-- Kunlar bo'yicha tahlil -->
     <div class="mt-4 pt-3 border-top">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <span class="small fw-semibold text-secondary">Kunlar bo‘yicha tahlil:</span>
@@ -67,14 +164,23 @@
     </div>
   </div>
 
-  <!-- 📊 Statistika Jadvali -->
+  <!-- 📊 3. ASOSIY STATISTIKA JADVALI -->
   <div class="card-dashboard p-3 p-md-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h6 class="fw-bold text-dark mb-0">
-        <i class="bi bi-table me-1 text-primary"></i> Operatorlar Natijalari Jadvali
-      </h6>
+      <div>
+        <h6 class="fw-bold text-dark mb-1">
+          <i class="bi bi-table me-1 text-primary"></i> Operatorlar Faoliyati Batafsil Natijalari
+        </h6>
+        <small class="text-muted">
+          {% if selected_day %}
+            {{ selected_day }}-{{ selected_month_name }} {{ selected_year }} y. kunlik ko‘rsatkichlar
+          {% else %}
+            {{ selected_month_name }} {{ selected_year }} y. oylik ko‘rsatkichlar
+          {% endif %}
+        </small>
+      </div>
       <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
-        Faol operatorlar: {{ staff_stats|length }} ta
+        Xodimlar soni: {{ staff_stats|length }} ta
       </span>
     </div>
 
@@ -82,51 +188,108 @@
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
-            <th><i class="bi bi-person-fill me-1"></i> Hodim (F.I.Sh)</th>
-            <th><i class="bi bi-shield-check me-1"></i> Tizimdagi Roli</th>
-            <th><i class="bi bi-building me-1"></i> Bo‘lim & Lavozim</th>
-            <th class="text-center"><i class="bi bi-calendar-check me-1"></i> Bugun</th>
-            <th class="text-center"><i class="bi bi-calendar-month me-1"></i> Shu oyda</th>
-            <th class="text-center"><i class="bi bi-bar-chart-fill me-1"></i> Jami</th>
-            <th class="text-end"><i class="bi bi-award-fill me-1"></i> Daraja unvoni</th>
+            <th style="min-width: 220px;"><i class="bi bi-person-fill me-1"></i> Hodim (F.I.Sh)</th>
+            <th style="min-width: 140px;"><i class="bi bi-building me-1"></i> Bo‘lim & Lavozim</th>
+            <th class="text-center" style="min-width: 210px; background-color: #f1f5f9;">
+              <i class="bi bi-calendar-month me-1 text-primary"></i> 
+              {% if selected_day %}{{ selected_day }}-{{ selected_month_name }}{% else %}{{ selected_month_name }} (Tanlangan oy){% endif %}
+              <div class="d-flex justify-content-around mt-1" style="font-size: 0.65rem;">
+                <span class="text-success fw-bold">QABUL</span>
+                <span class="text-danger fw-bold">RAD</span>
+                <span class="text-primary fw-bold">JAMI</span>
+              </div>
+            </th>
+            <th class="text-center" style="min-width: 170px;">
+              <i class="bi bi-calendar-check me-1 text-success"></i> Bugun
+              <div class="d-flex justify-content-around mt-1" style="font-size: 0.65rem;">
+                <span class="text-success fw-bold">Qabul</span>
+                <span class="text-danger fw-bold">Rad</span>
+                <span class="text-dark fw-bold">Jami</span>
+              </div>
+            </th>
+            <th class="text-center" style="min-width: 170px;">
+              <i class="bi bi-bar-chart-fill me-1 text-info"></i> Umumiy (Faoliyatida)
+              <div class="d-flex justify-content-around mt-1" style="font-size: 0.65rem;">
+                <span class="text-success fw-bold">Qabul</span>
+                <span class="text-danger fw-bold">Rad</span>
+                <span class="text-dark fw-bold">Jami</span>
+              </div>
+            </th>
+            <th class="text-end" style="min-width: 120px;"><i class="bi bi-award-fill me-1"></i> Daraja</th>
           </tr>
         </thead>
         <tbody>
           {% for s in staff_stats %}
           <tr>
+            <!-- Hodim nomi & avatar -->
             <td>
               <div class="d-flex align-items-center gap-2">
-                <div class="sidebar-user-avatar">
-                  {{ s.user.first_name|first|default:s.user.username|first }}
+                <div class="sidebar-user-avatar" title="{{ s.user.full_name|default:s.user.username }}">
+                  {% if s.user.first_name and s.user.last_name %}
+                    {{ s.user.first_name|first }}{{ s.user.last_name|first }}
+                  {% elif s.user.first_name %}
+                    {{ s.user.first_name|first }}
+                  {% else %}
+                    <i class="bi bi-person-fill"></i>
+                  {% endif %}
                 </div>
                 <div>
                   <div class="fw-bold text-dark">{{ s.user.full_name|default:s.user.username }}</div>
-                  <small class="text-muted">@{{ s.user.username }}</small>
+                  <div class="d-flex align-items-center gap-1">
+                    <span class="badge {{ s.user.role_badge }} py-0" style="font-size: 0.65rem;">{{ s.role }}</span>
+                    <small class="text-muted">@{{ s.user.username }}</small>
+                  </div>
                 </div>
               </div>
             </td>
+
+            <!-- Bo'lim va lavozim -->
             <td>
-              <span class="badge {{ s.user.role_badge }} px-2 py-1">{{ s.role }}</span>
+              <div class="text-dark fw-medium small">{{ s.department }}</div>
+              <small class="text-muted" style="font-size: 0.75rem;">{{ s.position }}</small>
             </td>
-            <td>
-              <div class="text-dark fw-medium">{{ s.department }}</div>
-              <small class="text-muted">{{ s.position }}</small>
+
+            <!-- Tanlangan Oy / Kun statistikasi (Qabul, Rad, Jami) -->
+            <td class="text-center bg-light">
+              <div class="table-stat-cell-group">
+                <!-- Qabul qilingan -->
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-6 px-2 py-1 font-monospace" style="min-width: 42px;" title="Qabul qilingan / Bajarilgan: {{ s.month_completed }} ta">
+                  {{ s.month_completed }}
+                </span>
+                <!-- Rad etilgan -->
+                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fs-6 px-2 py-1 font-monospace" style="min-width: 42px;" title="Rad etilgan: {{ s.month_rejected }} ta">
+                  {{ s.month_rejected }}
+                </span>
+                <!-- Jami -->
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-6 px-2 py-1 font-monospace fw-bold" style="min-width: 48px;" title="Jami xizmat: {{ s.month_total }} ta">
+                  {{ s.month_total }}
+                </span>
+              </div>
             </td>
+
+            <!-- Bugungi statistika (Qabul, Rad, Jami) -->
             <td class="text-center">
-              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 fs-6 px-2 py-1 font-monospace">
-                {{ s.today }}
-              </span>
+              <div class="table-stat-cell-group font-monospace small">
+                <span class="text-success fw-bold px-1" title="Bugun qabul: {{ s.today_completed }}">{{ s.today_completed }}</span>
+                <span class="text-muted">/</span>
+                <span class="text-danger fw-bold px-1" title="Bugun rad: {{ s.today_rejected }}">{{ s.today_rejected }}</span>
+                <span class="text-muted">/</span>
+                <span class="text-dark fw-bold px-1" title="Bugun jami: {{ s.today_total }}">{{ s.today_total }}</span>
+              </div>
             </td>
+
+            <!-- Umumiy jami statistika -->
             <td class="text-center">
-              <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fs-6 px-2 py-1 font-monospace">
-                {{ s.this_month }}
-              </span>
+              <div class="table-stat-cell-group font-monospace small">
+                <span class="text-success fw-bold px-1" title="Jami qabul: {{ s.all_completed }}">{{ s.all_completed }}</span>
+                <span class="text-muted">/</span>
+                <span class="text-danger fw-bold px-1" title="Jami rad: {{ s.all_rejected }}">{{ s.all_rejected }}</span>
+                <span class="text-muted">/</span>
+                <span class="text-dark fw-bold px-1" title="Jami barchasi: {{ s.all_total }}">{{ s.all_total }}</span>
+              </div>
             </td>
-            <td class="text-center">
-              <span class="fw-bold text-dark font-monospace fs-6">
-                {{ s.total }}
-              </span>
-            </td>
+
+            <!-- Operator Darajasi -->
             <td class="text-end">
               <span class="badge bg-light text-dark border px-2 py-1 font-monospace">
                 {{ s.level }}
@@ -135,9 +298,9 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="text-center py-5 text-muted">
+            <td colspan="6" class="text-center py-5 text-muted">
               <i class="bi bi-bar-chart text-secondary fs-1 d-block mb-2"></i>
-              <h6>Tanlangan muddatda hech qanday xizmat ko‘rsatish ma'lumoti topilmadi</h6>
+              <h6>Xodimlar ma'lumoti topilmadi</h6>
             </td>
           </tr>
           {% endfor %}
