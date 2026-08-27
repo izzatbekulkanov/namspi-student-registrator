@@ -142,14 +142,22 @@ class StaffListView(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('q')
+        department = self.request.GET.get('department')
         qs = CustomUser.objects.all().order_by('full_name')
         if query:
             qs = qs.filter(full_name__icontains=query)
+        if department:
+            qs = qs.filter(department_name=department)
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.now().date()
+
+        # Get all distinct non-empty departments for filtering
+        departments = CustomUser.objects.exclude(department_name__isnull=True).exclude(department_name='').values_list('department_name', flat=True).distinct().order_by('department_name')
+        context['departments'] = departments
+        context['selected_department'] = self.request.GET.get('department', '')
 
         operator_profiles = OperatorProfile.objects.in_bulk(field_name='operator')
 

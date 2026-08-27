@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NamDPI | Xizmat ko‘rsatilayotgan chiptalar</title>
+    <title>NamDPI | Xizmat ko‘rsatilayotgan chiptalar monitori</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -14,50 +14,74 @@
 
 <!-- HEADER -->
 <header class="header glass">
-    <img src="assets/img/logo.png" class="logo" alt="NamDPI Logo" />
-    <div class="header-title">Xizmat ko‘rsatilayotgan chiptalar</div>
-    <div class="theme-toggle">
-        <button id="themeToggle" title="Rejimni o‘zgartirish" aria-label="Rejimni o‘zgartirish">🌙</button>
+    <div class="header-left">
+        <img src="assets/img/logo.png" class="logo" alt="NamDPI Logo" />
+        <div class="header-title">Xizmat ko‘rsatilayotgan navbatlar</div>
+    </div>
+    <div class="header-right">
+        <div id="liveClock" class="live-clock">00:00:00</div>
+        <div id="apiStatus" class="status-badge status-online">
+            <span class="status-dot">●</span>
+            <span id="apiStatusText">Bog‘langan</span>
+        </div>
+        <button id="settingsBtn" class="header-btn" title="Server sozlamalari">⚙️</button>
+        <button id="themeToggle" class="header-btn" title="Mavzuni o‘zgartirish">🌙</button>
     </div>
 </header>
 
 <!-- MAIN CONTENT -->
 <main class="main">
-    <!-- CHAP PANEL -->
-    <section class="left-panel">
+    <!-- CHAP PANEL: NAVBATLAR JADVALI -->
+    <section class="left-panel glass">
         <table class="ticket-table">
             <thead>
             <tr>
-                <th>Navbat</th>
-                <th>Oyna</th>
+                <th>Navbat raqami</th>
+                <th>Oyna raqami</th>
             </tr>
             </thead>
             <tbody id="ticket-body">
-            <!-- JS orqali to‘ldiriladi -->
+                <!-- JS orqali to‘ldiriladi -->
             </tbody>
         </table>
     </section>
 
-    <!-- O‘NG SECTION -->
+    <!-- O‘NG PANEL: VIDEO VA E'LON -->
     <div class="right-section">
-        <div class="right-video">
-            <video autoplay muted loop>
-                <source src="assets/video/intro.webm" type="video/webm" />
+        <div class="right-video glass">
+            <video autoplay muted loop playsinline>
+                <source src="assets/video/web.webm" type="video/webm" />
             </video>
             <!-- E’lon oynasi -->
-            <div class="announcement glass" id="announcement">
-                <span id="announcement-text"></span>
+            <div class="announcement" id="announcement">
+                <div class="announcement-badge">🔔 Xizmatga taklif etiladi</div>
+                <div class="announcement-ticket" id="announcement-ticket">----</div>
+                <div class="announcement-window" id="announcement-window">-- - oyna</div>
             </div>
         </div>
         <!-- Promo ma'lumot -->
-        <div class="promo-info glass">Namangan Davlat Pedagogika Instituti | RTTM</div>
+        <div class="promo-info glass">Namangan Davlat Pedagogika Instituti — Elektron Navbat Tizimi</div>
     </div>
 </main>
 
 <!-- FOOTER -->
 <footer class="footer glass">
-    © 2025 Namangan Davlat Pedagogika Instituti — RTTM
+    © 2026 Namangan Davlat Pedagogika Instituti — Raqamli Ta'lim Texnologiyalari Markazi (RTTM)
 </footer>
+
+<!-- SOZLAMALAR MODALI -->
+<div class="modal-backdrop" id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-title">⚙️ Server Sozlamalari</div>
+        <label for="apiUrlInput" style="display:block; margin-bottom: 8px; font-size: 13px; color: #cbd5e1;">API Server manzili (Serving tickets URL):</label>
+        <input type="text" id="apiUrlInput" class="modal-input" placeholder="https://navbat.namspi.uz/api/tickets/serving/" />
+        <div class="modal-actions">
+            <button id="resetApiBtn" class="btn-secondary">Standart</button>
+            <button id="cancelSettingsBtn" class="btn-secondary">Bekor qilish</button>
+            <button id="saveSettingsBtn" class="btn-primary">Saqlash</button>
+        </div>
+    </div>
+</div>
 
 <!-- SCRIPT -->
 <script src="script.js"></script>

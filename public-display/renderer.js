@@ -1,82 +1,237 @@
-const API_URL = "https://navbat.namspi.uz/api/tickets/serving/";
+// === public-display/renderer.js ===
 
-// Oldingi navbatlar ro‘yxatini saqlash
-let previousTickets = [];
+const DEFAULT_API_URL = "https://navbat.namspi.uz/api/tickets/serving/";
+let currentApiUrl = localStorage.getItem("API_URL") || DEFAULT_API_URL;
 
-// E’lonlar navbati
+// Oldingi navbatlarni saqlash va yangi navbatlarni aniqlash
+let announcedTicketIds = new Set();
+let isFirstLoad = true;
+
+// E’lonlar navbati (Audio / Visual Queue)
 let announcementQueue = [];
 let isAnnouncing = false;
 
-async function fetchServingTickets() {
-    try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
+// API manzilini qayta yuklash
+window.reloadApiUrl = function() {
+    currentApiUrl = localStorage.getItem("API_URL") || DEFAULT_API_URL;
+    fetchServingTickets();
+};
 
-        const tbody = document.getElementById("ticket-body");
+// API holati indikatorini yangilash
+function updateApiStatus(isOnline, message = "") {
+    const statusEl = document.getElementById("apiStatus");
+    const statusTextEl = document.getElementById("apiStatusText");
+    if (!statusEl || !statusTextEl) return;
 
-        // Yangi navbatlarni aniqlash
-        const newTickets = data.serving_tickets.filter(ticket =>
-            !previousTickets.some(prev => prev.ticket_number === ticket.ticket_number)
-        );
-
-        // Yangi navbatlarni e’lonlar navbatiga qo‘shish
-        if (newTickets.length > 0) {
-            announcementQueue.push(...newTickets);
-            if (!isAnnouncing) announceNextTicket(); // Agar e’lon jarayoni boshlanmagan bo‘lsa, darhol boshlash
-        }
-
-        // Jadvalni yangilash
-        tbody.innerHTML = "";
-        data.serving_tickets.forEach(ticket => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${ticket.ticket_number}</td>
-                <td>${ticket.window_number || "—"}</td>
-            `;
-            tbody.appendChild(row);
-        });
-
-        // Oldingi navbatlarni yangilash
-        previousTickets = [...data.serving_tickets];
-
-    } catch (error) {
-        console.error("❌ API xatolik:", error);
+    if (isOnline) {
+        statusEl.className = "status-badge status-online";
+        statusTextEl.textContent = message || "Bog‘langan";
+    } else {
+        statusEl.className = "status-badge status-offline";
+        statusTextEl.textContent = message || "Ulanishda xato";
     }
 }
 
-// E’lon qilish funksiyasi
-function announceNextTicket() {
-    if (isAnnouncing || announcementQueue.length === 0) return;
+// Chipta ma'lumotlarini serverdan yuklash
+async function fetchServingTickets() {
+    const tbody = document.getElementById("ticket-body");
+    if (!tbody) return;
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        const res = await fetch(currentApiUrl, {
+            signal: controller.signal,
+            headers: { "Accept": "application/json" }
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+            throw new Error(`HTTP xatolik: ${res.status}`);
+        }
+
+        const data = await res.json();
+        updateApiStatus(true, "Jonli");
+
+        // Har xil API formatlarini qo'llab-quvvatlash
+        const tickets = data.serving_tickets || data.tickets || (Array.isArray(data) ? data : []);
+
+        // Yangi chaqirilgan chiptalarni aniqlash
+        if (isFirstLoad) {
+            // Dastur birinchi ochilganda bor navbatlarni faqat ro'yxatga olamiz (barchasini birdaniga e'lon qilmaslik uchun)
+            tickets.forEach(ticket => {
+                const key = String(ticket.id || ticket.ticket_number);
+                announcedTicketIds.add(key);
+            });
+            isFirstLoad = false;
+        } else {
+            // Yangi kelgan chiptalarni topish
+            const newTickets = tickets.filter(ticket => {
+                const key = String(ticket.id || ticket.ticket_number);
+                return !announcedTicketIds.has(key);
+            });
+
+            if (newTickets.length > 0) {
+                newTickets.forEach(t => {
+                    const key = String(t.id || t.ticket_number);
+                    announcedTicketIds.add(key);
+                    announcementQueue.push(t);
+                });
+
+                if (!isAnnouncing) {
+                    processNextAnnouncement();
+                }
+            }
+        }
+
+        // Jadvalni to'ldirish
+        renderTicketTable(tickets);
+
+    } catch (error) {
+        console.error("❌ API xatolik:", error);
+        updateApiStatus(false, "Aloqa uzildi");
+
+        // Agar jadval bo'sh bo'lsa xatolik xabarini ko'rsatish
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="2" class="empty-state">
+                        <span class="empty-icon">⚠️</span>
+                        Server bilan bog‘lanib bo‘lmadi.<br>
+                        <small style="font-size: 14px; opacity: 0.8;">Qayta ulanish kutilmoqda...</small>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+// Jadvalni chizish funksiyasi
+function renderTicketTable(tickets) {
+    const tbody = document.getElementById("ticket-body");
+    if (!tbody) return;
+
+    if (!tickets || tickets.length === 0) {
+        tbody.innerHTML = `
+            <tr class="empty-row">
+                <td colspan="2" class="empty-state">
+                    <span class="empty-icon">⏳</span>
+                    Hozircha xizmat ko‘rsatilayotgan navbatlar yo‘q
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = "";
+    tickets.forEach(ticket => {
+        const ticketNum = String(ticket.ticket_number || "").padStart(4, "0");
+        const windowNum = ticket.window_number ? `${ticket.window_number} - oyna` : "—";
+        const ticketId = ticket.id || ticket.ticket_number;
+
+        html += `
+            <tr id="row-ticket-${ticketId}">
+                <td class="ticket-cell">${ticketNum}</td>
+                <td><span class="window-pill">${windowNum}</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Ketma-ket audio ijro qilish funksiyasi
+function playAudioSequence(audioPaths, onComplete) {
+    if (!audioPaths || audioPaths.length === 0) {
+        if (typeof onComplete === "function") onComplete();
+        return;
+    }
+
+    const currentSrc = audioPaths[0];
+    const remaining = audioPaths.slice(1);
+    const audio = new Audio(currentSrc);
+
+    audio.onended = () => {
+        playAudioSequence(remaining, onComplete);
+    };
+
+    audio.onerror = (e) => {
+        console.warn(`Audio yuklanmadi: ${currentSrc}`, e);
+        playAudioSequence(remaining, onComplete);
+    };
+
+    audio.play().catch(err => {
+        console.warn("Audio ijro xatosi:", err);
+        playAudioSequence(remaining, onComplete);
+    });
+}
+
+// Navbatdagi e'lonni boshqarish
+function processNextAnnouncement() {
+    if (announcementQueue.length === 0) {
+        isAnnouncing = false;
+        return;
+    }
 
     isAnnouncing = true;
     const ticket = announcementQueue.shift();
 
-    const announcement = document.getElementById("announcement");
-    const announcementText = document.getElementById("announcement-text");
+    const announcementEl = document.getElementById("announcement");
+    const ticketEl = document.getElementById("announcement-ticket");
+    const windowEl = document.getElementById("announcement-window");
 
-    // E’lon matnini darhol yangilash
-    announcementText.textContent = `Navbat: ${ticket.ticket_number} | Oyna: ${ticket.window_number || "—"}`;
-    announcement.classList.add("active");
+    const ticketNumStr = String(ticket.ticket_number || "").padStart(4, "0");
+    const windowNum = ticket.window_number || "";
 
-    // Ovoz fayllarini ketma-ket o‘ynatish
-    const dingDongAudio = new Audio("assets/sound/ding-dong.mp3");
-    const voiceMaftunaAudio = new Audio("assets/sound/voice_maftuna.wav");
+    if (ticketEl) ticketEl.textContent = ticketNumStr;
+    if (windowEl) windowEl.textContent = windowNum ? `${windowNum} - oyna` : "Xizmat oynasi";
 
-    dingDongAudio.play().catch(error => console.error("❌ Ding-dong ovoz xatolik:", error));
+    // Jadvaldagi qatorni ajratib ko'rsatish
+    const ticketId = ticket.id || ticket.ticket_number;
+    const rowEl = document.getElementById(`row-ticket-${ticketId}`);
+    if (rowEl) rowEl.classList.add("row-active");
 
-    // Ding-dong tugagach, voice_maftuna o‘ynaydi
-    dingDongAudio.onended = () => {
-        voiceMaftunaAudio.play().catch(error => console.error("❌ Voice_maftuna ovoz xatolik:", error));
-    };
+    // E'lon oynasini ko'rsatish
+    if (announcementEl) announcementEl.classList.add("active");
 
-    // E’lonni 7 soniya ko‘rsatish (ding-dong ~2s + voice_maftuna ~5s uchun yetarli vaqt)
-    setTimeout(() => {
-        announcement.classList.remove("active");
-        isAnnouncing = false;
-        announceNextTicket(); // Keyingi e’lonni ko‘rsatish
-    }, 7000);
+    // Ovozli xabarlar ro'yxati (Ketma-ket)
+    const audioQueue = [];
+
+    // 1. Ding-dong
+    audioQueue.push("assets/sound/ding-dong.mp3");
+
+    // 2. Chipta raqami raqamlari (0-9)
+    for (let char of ticketNumStr) {
+        audioQueue.push(`assets/voice/${char}.mp3`);
+    }
+    audioQueue.push("assets/voice/inchi_raqam_iltimos.mp3");
+
+    // 3. Oyna raqami (agar mavjud bo'lsa)
+    if (windowNum) {
+        for (let char of String(windowNum)) {
+            audioQueue.push(`assets/voice/${char}.mp3`);
+        }
+        audioQueue.push("assets/voice/inchi_oynaga_boring.mp3");
+    }
+
+    // Audio ketma-ket ijro etiladi
+    playAudioSequence(audioQueue, () => {
+        // Audio tugagach 1.5 soniya ushlab turib yopish
+        setTimeout(() => {
+            if (announcementEl) announcementEl.classList.remove("active");
+            if (rowEl) rowEl.classList.remove("row-active");
+
+            // Keyingi e'lonni e'lon qilish
+            setTimeout(() => {
+                processNextAnnouncement();
+            }, 800);
+        }, 1500);
+    });
 }
 
-// Har 3 soniyada yangilash (tezroq yangilash uchun 5s dan 3s ga kamaytirdim)
-setInterval(fetchServingTickets, 3000);
-fetchServingTickets();
+// Boshlang'ich yuklash va 3 soniyali davriy so'rov
+document.addEventListener("DOMContentLoaded", () => {
+    fetchServingTickets();
+    setInterval(fetchServingTickets, 3000);
+});
