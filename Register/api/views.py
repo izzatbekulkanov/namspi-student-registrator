@@ -101,11 +101,10 @@ class ServingTicketListAPI(APIView):
     def get(self, request):
         today = now().date()
 
-        # Faqat bugungi "serving" statusdagi chiptalar
+        # Bugungi "serving" statusdagi chiptalar
         tickets = QueueTicket.objects.filter(
-            created_at__date=today,
             status="serving"
-        )
+        ).select_related('served_by', 'service', 'service__section').order_by('started_at', 'created_at')
 
         results = []
         for ticket in tickets:
@@ -113,9 +112,20 @@ class ServingTicketListAPI(APIView):
             if ticket.started_at:
                 duration_seconds = int((now() - ticket.started_at).total_seconds())
 
+            # Oyna raqamini aniqlash (ticket maydonida bo‘lmasa, DailyWorkWindow dan olish)
+            window_number = ticket.window_number
+            if not window_number and ticket.served_by:
+                try:
+                    work_window = DailyWorkWindow.objects.filter(operator=ticket.served_by, date=today).first()
+                    if work_window:
+                        window_number = work_window.window_number
+                except Exception:
+                    pass
+
             results.append({
+                "id": ticket.id,
                 "ticket_number": ticket.ticket_number,
-                "window_number": ticket.window_number,
+                "window_number": window_number,
                 "started_at": ticket.started_at.strftime('%H:%M:%S') if ticket.started_at else None,
                 "duration_seconds": duration_seconds,
                 "operator": {
@@ -124,9 +134,9 @@ class ServingTicketListAPI(APIView):
                     "username": ticket.served_by.username if ticket.served_by else None,
                 },
                 "service": {
-                    "id": ticket.service.id,
-                    "name": ticket.service.name,
-                    "section": ticket.service.section.name,
+                    "id": ticket.service.id if ticket.service else None,
+                    "name": ticket.service.name if ticket.service else "",
+                    "section": ticket.service.section.name if (ticket.service and ticket.service.section) else "",
                 },
                 "notes": ticket.notes or ""
             })

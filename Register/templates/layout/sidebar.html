@@ -1,0 +1,93 @@
+{% load static %}
+{% with current=request.resolver_match.url_name %}
+<aside class="sidebar-pro d-flex flex-column h-100 bg-white">
+  <!-- 🌟 Brand Header -->
+  <div class="sidebar-brand p-3 d-flex align-items-center justify-content-start border-bottom">
+    <a href="{% url 'service-dashboard' %}" class="d-flex align-items-center gap-2 text-decoration-none overflow-hidden">
+      <div class="brand-logo-circle flex-shrink-0">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" width="28" height="28" class="img-fluid">
+      </div>
+      <div class="sidebar-hide-on-collapse overflow-hidden">
+        <div class="fw-bold text-dark fs-6 line-height-1 text-nowrap">NamDPI <span class="text-primary">REG</span></div>
+        <small class="text-muted text-nowrap" style="font-size: 0.68rem; letter-spacing: 0.5px;">TIZIM BOSHQARUVI</small>
+      </div>
+    </a>
+  </div>
+
+  <!-- 🧭 Navigatsiya Menyusi -->
+  <div class="sidebar-menu flex-grow-1 p-2 overflow-y-auto">
+    <!-- 1. ASOSIY BOSHQARUV -->
+    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2 mt-1" style="font-size: 0.68rem; letter-spacing: 0.8px;">
+      Asosiy Boshqaruv
+    </div>
+    <ul class="nav flex-column gap-1 mb-3">
+      <li class="nav-item">
+        <a href="{% url 'service-dashboard' %}" class="sidebar-link {% if current == 'service-dashboard' %}active{% endif %}" title="Boshqaruv Paneli">
+          <i class="bi bi-grid-1x2-fill me-2"></i>
+          <span class="sidebar-hide-on-collapse">Boshqaruv Paneli</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'operator-queue' %}" class="sidebar-link {% if current == 'operator-queue' %}active{% endif %}" title="Operator Navbati">
+          <i class="bi bi-person-lines-fill me-2 text-warning"></i>
+          <span class="sidebar-hide-on-collapse">Operator Navbati</span>
+          <span class="badge bg-warning text-dark ms-auto font-monospace sidebar-hide-on-collapse" id="sidebar-waiting-badge">
+            Navbat
+          </span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- 2. MONITORING VA HISOBOTLAR -->
+    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.68rem; letter-spacing: 0.8px;">
+      Monitoring & Tahlil
+    </div>
+    <ul class="nav flex-column gap-1 mb-3">
+      <li class="nav-item">
+        <a href="{% url 'queue-display' %}" target="_blank" class="sidebar-link {% if current == 'queue-display' %}active{% endif %}" title="Zaldagi Monitor (TV)">
+          <i class="bi bi-tv-fill me-2 text-info"></i>
+          <span class="sidebar-hide-on-collapse">Zaldagi Monitor</span>
+          <i class="bi bi-box-arrow-up-right ms-auto small text-muted sidebar-hide-on-collapse"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'statistics-display' %}" class="sidebar-link {% if current == 'statistics-display' %}active{% endif %}" title="Statistika & Hisobot">
+          <i class="bi bi-bar-chart-line-fill me-2 text-success"></i>
+          <span class="sidebar-hide-on-collapse">Statistika & Hisobot</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- 3. TIZIM VA XODIMLAR -->
+    <div class="sidebar-heading sidebar-hide-on-collapse text-uppercase text-secondary fw-bold px-2 mb-2" style="font-size: 0.68rem; letter-spacing: 0.8px;">
+      Tizim & Xodimlar
+    </div>
+    <ul class="nav flex-column gap-1 mb-2">
+      <li class="nav-item">
+        <a href="{% url 'staff-add' %}" class="sidebar-link {% if current == 'staff-add' %}active{% endif %}" title="Xodim qo‘shish">
+          <i class="bi bi-person-plus-fill me-2 text-primary"></i>
+          <span class="sidebar-hide-on-collapse">Xodim qo‘shish</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'staff-list' %}" class="sidebar-link {% if current == 'staff-list' %}active{% endif %}" title="Xodimlar ro‘yxati">
+          <i class="bi bi-people-fill me-2 text-secondary"></i>
+          <span class="sidebar-hide-on-collapse">Xodimlar ro‘yxati</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'service-services' %}" class="sidebar-link {% if current == 'service-services' %}active{% endif %}" title="Bo‘lim & Xizmatlar">
+          <i class="bi bi-collection-fill me-2 text-warning"></i>
+          <span class="sidebar-hide-on-collapse">Bo‘lim & Xizmatlar</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'assign-services' %}" class="sidebar-link {% if current == 'assign-services' %}active{% endif %}" title="Xizmat biriktirish">
+          <i class="bi bi-diagram-3-fill me-2 text-danger"></i>
+          <span class="sidebar-hide-on-collapse">Xizmat biriktirish</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>
+{% endwith %}

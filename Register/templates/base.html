@@ -2,35 +2,480 @@
 {% load static django_bootstrap5 %}
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Registrator{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Registrator — Boshqaruv Tizimi{% endblock %}</title>
 
-    <!-- 🧠 Favicon -->
-    <link rel="icon" type="image/x-icon" href="{% static 'img/queue.ico' %}">
+  <!-- 🧠 Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static 'img/queue.ico' %}">
 
-    <!-- Bootstrap Icons CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    {% bootstrap_css %}
+  <!-- ⚡ Sync Immediate Sidebar State (Flicker & Jump'ni 100% yo'qotish) -->
+  <script>
+    (function() {
+      try {
+        if (localStorage.getItem("sidebar_collapsed") === "true") {
+          document.documentElement.classList.add("sidebar-collapsed");
+        }
+      } catch(e) {}
+    })();
+  </script>
 
+  <!-- Bootstrap Icons CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  {% bootstrap_css %}
+
+  <style>
+    :root {
+      --sidebar-width: 250px;
+      --sidebar-collapsed-width: 72px;
+      --primary-color: #0d6efd;
+      --primary-hover: #0b5ed7;
+      --primary-gradient: linear-gradient(135deg, #0d6efd 0%, #0052cc 100%);
+      --bg-light: #f8fafc;
+      --card-border: #e2e8f0;
+      --input-border: #cbd5e1;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg-light);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /* 🔲 TO'RTBURCHAKSIMON ENTERPRISE UI GLOBAL QOIDALARI */
+    .btn {
+      border-radius: var(--radius-sm) !important;
+      font-weight: 500;
+      transition: all 0.15s ease-in-out;
+    }
+    .form-control, .input-group-text {
+      border-radius: var(--radius-sm) !important;
+      border-color: var(--input-border);
+    }
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.18);
+    }
+
+    /* 🎛️ CUSTOM SELECT & DROPDOWN STYLING */
+    .form-select {
+      background-color: #ffffff;
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-sm) !important;
+      color: #1e293b;
+      font-weight: 500;
+      padding: 0.5rem 2.25rem 0.5rem 0.85rem;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 14px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+    }
+    .form-select:hover {
+      border-color: #94a3b8;
+      background-color: #f8fafc;
+    }
+    .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.18);
+      background-color: #ffffff;
+    }
+    .form-select-sm {
+      padding-top: 0.35rem;
+      padding-bottom: 0.35rem;
+      padding-left: 0.7rem;
+      font-size: 0.82rem;
+    }
+
+    .custom-dropdown-select .dropdown-toggle {
+      border-color: var(--input-border);
+      font-size: 0.88rem;
+      font-weight: 500;
+      text-align: left;
+    }
+    .custom-dropdown-select .dropdown-toggle::after {
+      float: right;
+      margin-top: 8px;
+    }
+    .custom-dropdown-select .dropdown-menu {
+      border: 1px solid var(--card-border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border-radius: var(--radius-sm) !important;
+      z-index: 1050;
+    }
+    .custom-dropdown-select .dropdown-item {
+      border-radius: 2px;
+      padding: 0.5rem 0.85rem;
+      font-weight: 500;
+      font-size: 0.88rem;
+      color: #334155;
+      transition: all 0.12s ease;
+      cursor: pointer;
+    }
+    .custom-dropdown-select .dropdown-item:hover {
+      background-color: #f1f5f9;
+      color: var(--primary-color);
+    }
+    .custom-dropdown-select .dropdown-item.active {
+      background-color: var(--primary-color);
+      color: #ffffff !important;
+    }
+    .custom-dropdown-select .dropdown-item.active i {
+      color: #ffffff !important;
+    }
+
+    .badge {
+      border-radius: 3px !important;
+      font-weight: 600;
+      padding: 0.35em 0.65em;
+    }
+    .card, .card-dashboard, .stat-card-pro, .action-card-pro, .modal-content, .offcanvas {
+      border-radius: var(--radius-md) !important;
+    }
+    .dropdown-menu {
+      border-radius: var(--radius-sm) !important;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .dropdown-item {
+      border-radius: 2px;
+      padding: 0.5rem 1rem;
+    }
+    .nav-pills .nav-link {
+      border-radius: var(--radius-sm) !important;
+    }
+    .nav-tabs .nav-link {
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+    }
+
+    /* 🧱 APP WRAPPER LAYOUT */
+    .app-layout {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* 🧭 DESKTOP SIDEBAR */
+    .app-sidebar-desktop {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      height: 100vh;
+      background-color: #ffffff;
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 1030;
+      overflow: hidden;
+      transition: width 0.2s ease, min-width 0.2s ease;
+    }
+
+    /* 🎛️ COLLAPSED (KICHRAYTIRILGAN) SIDEBAR */
+    html.sidebar-collapsed .app-sidebar-desktop,
+    body.sidebar-collapsed .app-sidebar-desktop {
+      width: var(--sidebar-collapsed-width) !important;
+      min-width: var(--sidebar-collapsed-width) !important;
+    }
+
+    html.sidebar-collapsed .sidebar-hide-on-collapse,
+    body.sidebar-collapsed .sidebar-hide-on-collapse {
+      display: none !important;
+    }
+
+    html.sidebar-collapsed .sidebar-brand,
+    body.sidebar-collapsed .sidebar-brand {
+      justify-content: center !important;
+      padding: 0.75rem 0.5rem !important;
+    }
+
+    html.sidebar-collapsed .sidebar-link,
+    body.sidebar-collapsed .sidebar-link {
+      justify-content: center !important;
+      padding: 0.75rem 0.5rem !important;
+    }
+
+    html.sidebar-collapsed .sidebar-link i,
+    body.sidebar-collapsed .sidebar-link i {
+      margin-right: 0 !important;
+      font-size: 1.35rem !important;
+    }
+
+    /* 📱 MAIN APP AREA */
+    .app-main {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      min-width: 0;
+      background-color: var(--bg-light);
+      overflow: hidden;
+    }
+
+    /* 🔝 DOIMIY KO‘RINUVCHI HEADER (FIXED TOP) */
+    .header-pro {
+      flex: 0 0 auto;
+      z-index: 1020;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    /* 📄 MUSTAQIL SCROLL BO‘LUVCHI ASOSIY KONTENT */
+    .app-content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 1.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 🔚 DOIMIY KO‘RINUVCHI FOOTER (FIXED BOTTOM) */
+    .footer-pro {
+      flex: 0 0 auto;
+      z-index: 1020;
+      box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.03);
+      border-top: 1px solid var(--card-border);
+    }
+
+    /* 🎨 SIDEBAR ELEMENTLARI */
+    .sidebar-pro {
+      font-size: 0.88rem;
+      height: 100%;
+    }
+
+    .sidebar-link {
+      color: #475569;
+      font-weight: 500;
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .sidebar-link:hover {
+      background-color: #f1f5f9;
+      color: var(--primary-color);
+    }
+
+    .sidebar-link.active {
+      background-color: var(--primary-color);
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+
+    .sidebar-link.active i {
+      color: #ffffff !important;
+    }
+
+    .brand-logo-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(13, 110, 253, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 👤 USER AVATARS */
+    .user-avatar-sm, .sidebar-user-avatar, .staff-avatar {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #0d6efd 0%, #1e40af 100%);
+      color: #ffffff !important;
+      font-weight: 700;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 6px rgba(13, 110, 253, 0.25);
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .user-avatar-sm i, .sidebar-user-avatar i, .staff-avatar i {
+      color: #ffffff !important;
+      font-size: 1.1rem;
+    }
+
+    /* 👑 RANK BADGES */
+    .rank-badge-pill {
+      font-weight: 700;
+      font-size: 0.82rem;
+      border-radius: var(--radius-sm) !important;
+    }
+
+    .rank-vip { background: linear-gradient(90deg, #ff0080, #7928ca); color: white; }
+    .rank-usta { background: linear-gradient(45deg, #ff6a00, #ee0979); color: white; }
+    .rank-yaxshi { background: #ffd700; color: #000; }
+    .rank-oddiy { background: #0d6efd; color: white; }
+    .rank-boshlovchi { background: #198754; color: white; }
+
+    /* 📦 CARDS & WIDGETS */
+    .card-dashboard {
+      background: #ffffff;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    /* 📜 CUSTOM SCROLLBARS */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.35); }
+  </style>
+
+  {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-light text-dark d-flex flex-column min-vh-100">
+<body>
 
-{% include "layout/header.html" %}
-{% include "layout/navbar.html" %}
+<div class="app-layout">
+  <!-- 🧭 1. DESKTOP SIDEBAR -->
+  <div class="app-sidebar-desktop d-none d-lg-block">
+    {% include "layout/sidebar.html" %}
+  </div>
 
-<main class="container flex-grow-1 py-4">
-    {% block content %}{% endblock %}
-</main>
+  <!-- 📱 2. MOBILE OFFCANVAS SIDEBAR -->
+  <div class="offcanvas offcanvas-start p-0 d-lg-none" tabindex="-1" id="sidebarOffcanvas" style="width: var(--sidebar-width);">
+    <div class="offcanvas-header border-bottom py-2">
+      <div class="d-flex align-items-center gap-2">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" width="28" height="28">
+        <span class="fw-bold fs-6">NamDPI REG</span>
+      </div>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      {% include "layout/sidebar.html" %}
+    </div>
+  </div>
 
-{% include "layout/footer.html" %}
+  <!-- 🖥️ 3. MAIN APP AREA -->
+  <div class="app-main">
+    <!-- 🔝 Doimiy Header -->
+    {% include "layout/header.html" %}
 
-<!-- Bootstrap JS (Bundle includes Popper) -->
+    <!-- 📄 Asosiy Sahifa Kontenti (Scrollable Area) -->
+    <main class="app-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- 🔚 Doimiy Footer -->
+    {% include "layout/footer.html" %}
+  </div>
+</div>
+
+<!-- 🪟 Global Oyna Sozlash Modali -->
+{% include "components/window_modal.html" %}
+
+<!-- Bootstrap JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<script>
+  // 🎛️ Sidebar Kichraytirish / Kattalashtirish (Collapse / Expand)
+  function toggleSidebarCollapse() {
+    const isCurrentlyCollapsed = document.documentElement.classList.contains("sidebar-collapsed");
+    if (isCurrentlyCollapsed) {
+      document.documentElement.classList.remove("sidebar-collapsed");
+      document.body.classList.remove("sidebar-collapsed");
+      localStorage.setItem("sidebar_collapsed", "false");
+    } else {
+      document.documentElement.classList.add("sidebar-collapsed");
+      document.body.classList.add("sidebar-collapsed");
+      localStorage.setItem("sidebar_collapsed", "true");
+    }
+  }
 
-{% block script %}
-{% endblock script %}
+  // Jonli Header Soati
+  function updateHeaderClock() {
+    const el = document.getElementById("headerLiveClock");
+    if (el) {
+      const now = new Date();
+      el.textContent = now.toLocaleTimeString('uz-UZ');
+    }
+  }
+  setInterval(updateHeaderClock, 1000);
+  updateHeaderClock();
+
+  // Agar operator oyna raqamini kiritmagan bo'lsa, avtomatik modal ochish
+  {% if user.is_authenticated and not has_window %}
+  document.addEventListener("DOMContentLoaded", function () {
+    const winModalEl = document.getElementById("windowModal");
+    if (winModalEl) {
+      const winModal = new bootstrap.Modal(winModalEl);
+      winModal.show();
+    }
+  });
+  {% endif %}
+
+  // Django Messages / Swal Toasts
+  {% if messages %}
+    {% for message in messages %}
+      Swal.fire({
+        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+        title: "{{ message|escapejs }}",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    {% endfor %}
+  {% endif %}
+
+  // 🗑️ Global SweetAlert2 Tasdiqlash Dialoogi (Confirmation Dialog)
+  document.addEventListener("click", function(e) {
+    const target = e.target.closest("[data-confirm]");
+    if (target) {
+      e.preventDefault();
+      const msg = target.getAttribute("data-confirm") || "Ushbu amalni bajarmoqchimisiz?";
+      const title = target.getAttribute("data-confirm-title") || "Harakatni tasdiqlang";
+      const btnText = target.getAttribute("data-confirm-btn") || "Ha, bajarish";
+      const btnColor = target.getAttribute("data-confirm-color") || "#dc2626";
+      const form = target.closest("form");
+
+      Swal.fire({
+        title: title,
+        text: msg,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: btnColor,
+        cancelButtonColor: "#64748b",
+        confirmButtonText: btnText,
+        cancelButtonText: "Bekor qilish",
+        reverseButtons: true,
+        customClass: {
+          popup: 'border shadow-lg',
+          confirmButton: 'btn btn-danger px-3 py-2 fw-semibold me-2',
+          cancelButton: 'btn btn-secondary px-3 py-2'
+        },
+        buttonsStyling: false
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (form) {
+            form.submit();
+          } else if (target.tagName === 'A' && target.href) {
+            window.location.href = target.href;
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% block script %}{% endblock script %}
 </body>
-
 </html>

@@ -1,105 +1,175 @@
 {% extends 'members/staff_managment.html' %}
 {% load static %}
 
-{% block title %}Hodimlar ro'yxati{% endblock %}
+{% block title %}Hodimlar ro‘yxati — Xodimlar boshqaruvi{% endblock %}
 
-{% block content %}
-<div class="col-md-9 col-lg-10 py-4 border-end shadow-sm min-vh-100 rounded-end">
-    <div class="container py-4">
-        <h4 class="fw-semibold text-center mb-4">Hodimlar ro‘yxati</h4>
-
-        <form method="GET" class="mb-3 d-flex justify-content-end">
-            <input type="text" name="q" value="{{ request.GET.q }}" class="form-control form-control-sm w-25"
-                   placeholder="Qidiruv...">
-            <button type="submit" class="btn btn-sm btn-outline-secondary ms-2">Izlash</button>
-        </form>
-
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm align-middle">
-                <thead class="table-light text-center">
-                <tr>
-                    <th>#</th>
-                    <th>F.I.Sh.</th>
-                    <th>Username</th>
-                    <th>Darajasi</th>
-                    <th>Bugun</th>
-                    <th>Umumiy</th>
-                    <th>Roli</th>
-                    <th>Amallar</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for user in users %}
-                <tr class="text-center">
-                    <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
-                    <td class="text-start">{{ user.full_name }}</td>
-                    <td>{{ user.username }}</td>
-                    <td>
-                        {% with user.operatorprofile as p %}
-                            {% if p.level == "VIP" %}<span class="badge bg-dark text-white">👑 VIP</span>{% endif %}
-                            {% if p.level == "Usta" %}<span class="badge bg-danger text-white">🔥 Usta</span>{% endif %}
-                            {% if p.level == "Yaxshi" %}<span class="badge bg-warning text-dark">🌟 Yaxshi</span>{% endif %}
-                            {% if p.level == "Oddiy" %}<span class="badge bg-primary">⭐ Oddiy</span>{% endif %}
-                            {% if p.level == "Boshlovchi" or not p.level %}<span class="badge bg-success">🟢 Boshlovchi</span>{% endif %}
-                        {% endwith %}
-                    </td>
-                    <td>{{ user.today_count }}</td>
-                    <td>{{ user.total_count }}</td>
-                    <td>
-                        {% if user.is_superuser %}<span class="badge bg-danger">Admin</span>
-                        {% elif user.is_leader %}<span class="badge bg-info text-dark">Rahbar</span>
-                        {% elif user.is_operator %}<span class="badge bg-primary">Operator</span>
-                        {% else %}<span class="badge bg-secondary">Noma'lum</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <form method="POST" action="{% url 'reset-password' user.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-warning">Parolni tiklash</button>
-                        </form>
-                        <form method="POST" action="{% url 'delete-staff' user.id %}" class="d-inline ms-1"
-                              onsubmit="return confirm('Rostdan ham o‘chirmoqchimisiz?')">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-danger">O‘chirish</button>
-                        </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="8" class="text-muted text-center">Hodimlar topilmadi</td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="mt-3">
-            {% if is_paginated %}
-            <nav>
-                <ul class="pagination pagination-sm justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?q={{ request.GET.q }}&page=1">&laquo;</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.previous_page_number }}">&lsaquo;</a>
-                    </li>
-                    {% endif %}
-                    <li class="page-item disabled">
-                        <span class="page-link">{{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
-                    </li>
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.next_page_number }}">&rsaquo;</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?q={{ request.GET.q }}&page={{ page_obj.paginator.num_pages }}">&raquo;</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
-        </div>
+{% block staff_content %}
+<div class="container-fluid px-0">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-people-fill text-primary"></i> Tizim Hodimlari Ro‘yxati
+      </h5>
+      <p class="text-secondary small mb-0">Barcha ro‘yxatdan o‘tgan xodimlar, ularning rollari va biriktirilgan xizmatlari</p>
     </div>
+    <a href="{% url 'staff-add' %}" class="btn btn-primary px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2">
+      <i class="bi bi-person-plus-fill"></i> Yangi xodim qo‘shish
+    </a>
+  </div>
+
+  <div class="card-dashboard p-3 p-md-4">
+    <!-- Qidiruv va Custom Dropdown Filter Paneli -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="staffFilterInput" class="form-control" placeholder="F.I.Sh yoki username bo‘yicha qidiruv...">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <!-- 🎛️ Custom Role Filter Dropdown -->
+        <div class="dropdown custom-dropdown-select">
+          <button class="btn btn-outline-secondary bg-white text-dark w-100 d-flex align-items-center justify-content-between dropdown-toggle py-2" type="button" id="roleDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="selectedRoleLabel" class="d-flex align-items-center gap-2 small fw-medium">
+              <i class="bi bi-funnel text-primary"></i> Barcha rollar
+            </span>
+          </button>
+          <ul class="dropdown-menu w-100 shadow-sm p-1" aria-labelledby="roleDropdownBtn">
+            <li>
+              <a class="dropdown-item role-dropdown-option active d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="">
+                <span><i class="bi bi-people me-2"></i> Barcha rollar</span>
+                <i class="bi bi-check2 check-icon"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item role-dropdown-option d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="Admin">
+                <span><i class="bi bi-shield-lock me-2 text-danger"></i> Admin</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item role-dropdown-option d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="Rahbar">
+                <span><i class="bi bi-person-badge me-2 text-info"></i> Rahbar</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item role-dropdown-option d-flex align-items-center justify-content-between" href="javascript:void(0)" data-value="Operator">
+                <span><i class="bi bi-headset me-2 text-primary"></i> Operator</span>
+                <i class="bi bi-check2 check-icon d-none"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jadval -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="staffMainTable">
+        <thead class="table-light">
+          <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+            <th>#</th>
+            <th>Xodim (F.I.Sh)</th>
+            <th>Username</th>
+            <th>Bo‘lim & Lavozim</th>
+            <th>Roli</th>
+            <th>Daraja</th>
+            <th class="text-end">Amallar</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="staff-table-row">
+            <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="sidebar-user-avatar">
+                  {{ u.first_name|first|default:u.username|first }}
+                </div>
+                <div>
+                  <div class="fw-bold text-dark">{{ u.full_name|default:u.username }}</div>
+                  <small class="text-muted">{{ u.gender|default:"" }}</small>
+                </div>
+              </div>
+            </td>
+            <td><code class="text-primary">@{{ u.username }}</code></td>
+            <td>
+              <div class="text-dark fw-medium">{{ u.department_name|default:"Bo‘limsiz" }}</div>
+              <small class="text-muted">{{ u.staff_position|default:"Operator" }}</small>
+            </td>
+            <td>
+              <span class="badge {{ u.role_badge }} role-badge-text px-2 py-1">{{ u.role_title }}</span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border px-2 py-1 font-monospace">
+                {{ u.operatorprofile.level|default:"Boshlovchi" }}
+              </span>
+            </td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-1">
+                <a href="{% url 'assign-services' %}?user_id={{ u.id }}" class="btn btn-sm btn-outline-primary px-2 py-1" title="Xizmat biriktirish">
+                  <i class="bi bi-diagram-3"></i> Biriktirish
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-people text-secondary fs-2 d-block mb-2"></i>
+              <h6>Hozircha xodimlar mavjud emas</h6>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+  const searchInput = document.getElementById("staffFilterInput");
+  let selectedRoleFilter = "";
+
+  function filterStaff() {
+    const searchVal = searchInput?.value.toLowerCase() || "";
+    const roleVal = selectedRoleFilter.toLowerCase();
+
+    document.querySelectorAll(".staff-table-row").forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const roleText = row.querySelector(".role-badge-text")?.textContent.toLowerCase() || "";
+      const matchesSearch = text.includes(searchVal);
+      const matchesRole = !roleVal || roleText.includes(roleVal);
+
+      row.style.display = (matchesSearch && matchesRole) ? "" : "none";
+    });
+  }
+
+  searchInput?.addEventListener("input", filterStaff);
+
+  // Custom Dropdown Option Handler
+  document.querySelectorAll(".role-dropdown-option").forEach(item => {
+    item.addEventListener("click", function() {
+      selectedRoleFilter = this.getAttribute("data-value");
+      const selectedHtml = this.querySelector("span").innerHTML;
+
+      // Update button text
+      const labelEl = document.getElementById("selectedRoleLabel");
+      if (labelEl) labelEl.innerHTML = selectedHtml;
+
+      // Update active states
+      document.querySelectorAll(".role-dropdown-option").forEach(el => {
+        el.classList.remove("active");
+        el.querySelector(".check-icon")?.classList.add("d-none");
+      });
+      this.classList.add("active");
+      this.querySelector(".check-icon")?.classList.remove("d-none");
+
+      filterStaff();
+    });
+  });
+</script>
 {% endblock %}

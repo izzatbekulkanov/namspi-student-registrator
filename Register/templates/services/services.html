@@ -1,124 +1,217 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Bo‘limlar va Xizmatlar Boshqaruvi — NamDPI Registrator{% endblock %}
+
 {% block content %}
-<h1 class="text-center mb-4 fs-4 fw-semibold text-primary">Xizmatlar Boshqaruvi</h1>
-
-<!-- Tabs navigatsiyasi -->
-<ul class="nav nav-tabs mb-4" id="serviceTab" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link {% if active_tab == 'section' %}active{% endif %}" id="section-tab" data-bs-toggle="tab" data-bs-target="#section" type="button" role="tab">Bo‘limlar</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link {% if active_tab == 'subservice' %}active{% endif %}" id="subservice-tab" data-bs-toggle="tab" data-bs-target="#subservice" type="button" role="tab">Xizmatlar</button>
-  </li>
-</ul>
-
-<!-- Tabs tarkibi -->
-<div class="tab-content" id="serviceTabContent">
-  <!-- Bo‘limlar -->
-  <div class="tab-pane fade {% if active_tab == 'section' %}show active{% endif %}" id="section" role="tabpanel" aria-labelledby="section-tab">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <form method="POST" class="vstack gap-2 mb-4">
-          {% csrf_token %}
-          <input type="hidden" name="active_tab" value="section">
-          <input type="text" name="name" class="form-control" placeholder="Bo‘lim nomi" required>
-          <textarea name="description" class="form-control" rows="2" placeholder="Izoh (ixtiyoriy)"></textarea>
-          <button name="section_submit" type="submit" class="btn btn-primary">Qo‘shish</button>
-        </form>
-
-        {% if sections %}
-        <table class="table table-bordered table-sm">
-          <thead class="table-light">
-            <tr><th>#</th><th>Bo‘lim nomi</th><th>Amal</th></tr>
-          </thead>
-          <tbody>
-            {% for s in sections %}
-            <tr>
-              <td>{{ forloop.counter }}</td>
-              <td>{{ s.name }}</td>
-              <td>
-                <form method="post" action="{% url 'delete-section' s.id %}" style="display:inline;">
-                  {% csrf_token %}
-                  <input type="hidden" name="active_tab" value="section">
-                  <button type="submit" class="btn btn-sm btn-danger">O‘chirish</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted">Bo‘limlar mavjud emas</p>
-        {% endif %}
-      </div>
+<div class="container-fluid px-0">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h5 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
+        <i class="bi bi-collection-fill text-primary"></i> Bo‘limlar va Xizmatlar Boshqaruvi
+      </h5>
+      <p class="text-secondary small mb-0">Tizimdagi asosiy xizmat bo‘limlari va ularning quyi xizmat turlarini sozlash</p>
     </div>
   </div>
 
-  <!-- Xizmatlar -->
-  <div class="tab-pane fade {% if active_tab == 'subservice' %}show active{% endif %}" id="subservice" role="tabpanel" aria-labelledby="subservice-tab">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <form method="POST" class="vstack gap-2 mb-4">
-          {% csrf_token %}
-          <input type="hidden" name="active_tab" value="subservice">
-          <select name="section" class="form-select" required>
-            <option value="" disabled selected>Bo‘limni tanlang</option>
-            {% for s in sections %}
-            <option value="{{ s.id }}">{{ s.name }}</option>
-            {% endfor %}
-          </select>
-          <input type="text" name="name" class="form-control" placeholder="Xizmat nomi" required>
-          <textarea name="description" class="form-control" rows="2" placeholder="Izoh (ixtiyoriy)"></textarea>
+  <!-- 🧭 Navigatsiya Tablari -->
+  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 border" id="serviceTab" role="tablist" style="border-radius: var(--radius-sm);">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-3 py-2 fw-semibold {% if active_tab == 'section' %}active{% else %}text-secondary{% endif %}" id="section-tab" data-bs-toggle="pill" data-bs-target="#section" type="button" role="tab">
+        <i class="bi bi-folder2-open me-1"></i> 1. Asosiy Bo‘limlar ({{ sections|length }})
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link px-3 py-2 fw-semibold {% if active_tab == 'subservice' %}active{% else %}text-secondary{% endif %}" id="subservice-tab" data-bs-toggle="pill" data-bs-target="#subservice" type="button" role="tab">
+        <i class="bi bi-list-task me-1"></i> 2. Quyi Xizmatlar ({{ subservices|length }})
+      </button>
+    </li>
+  </ul>
 
-          <button name="subservice_submit" type="submit" class="btn btn-primary">Qo‘shish</button>
-        </form>
+  <!-- Tab Tarkibi -->
+  <div class="tab-content" id="serviceTabContent">
+    <!-- 📁 1. BO‘LIMLAR -->
+    <div class="tab-pane fade {% if active_tab == 'section' %}show active{% endif %}" id="section" role="tabpanel">
+      <div class="row g-4">
+        <!-- Qo‘shish formasi -->
+        <div class="col-lg-5">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-plus-circle-fill text-primary"></i> Yangi Bo‘lim Qo‘shish
+            </h6>
+            <form method="POST" class="vstack gap-3">
+              {% csrf_token %}
+              <input type="hidden" name="active_tab" value="section">
 
-        {% if subservices %}
-        <table class="table table-bordered table-sm">
-          <thead class="table-light">
-            <tr><th>#</th><th>Xizmat nomi</th><th>Bo‘lim</th><th>Amal</th></tr>
-          </thead>
-          <tbody>
-            {% for ss in subservices %}
-            <tr>
-              <td>{{ forloop.counter }}</td>
-              <td>{{ ss.name }}</td>
-              <td>{{ ss.section.name }}</td>
-              <td>
-                <form method="post" action="{% url 'delete-subservice' ss.id %}" style="display:inline;">
-                  {% csrf_token %}
-                  <input type="hidden" name="active_tab" value="subservice">
-                  <button type="submit" class="btn btn-sm btn-danger">O‘chirish</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted">Xizmatlar mavjud emas</p>
-        {% endif %}
+              <div>
+                <label class="form-label fw-semibold text-secondary small">Bo‘lim nomi <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-folder"></i></span>
+                  <input type="text" name="name" class="form-control" placeholder="Masalan: Axborot texnologiyalari" required>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label fw-semibold text-secondary small">Qisqa izoh</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Bo‘lim faoliyati haqida ixtiyoriy izoh..."></textarea>
+              </div>
+
+              <button name="section_submit" type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm mt-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Bo‘limni saqlash
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Mavjud bo‘limlar ro‘yxati -->
+        <div class="col-lg-7">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-folder-check text-success"></i> Mavjud Bo‘limlar Ro‘yxati
+            </h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                    <th>#</th>
+                    <th>Bo‘lim nomi</th>
+                    <th>Izoh</th>
+                    <th class="text-end">Amal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for s in sections %}
+                  <tr>
+                    <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                    <td><div class="fw-bold text-dark">{{ s.name }}</div></td>
+                    <td><small class="text-muted">{{ s.description|default:"—"|truncatewords:6 }}</small></td>
+                    <td class="text-end">
+                      <form method="post" action="{% url 'delete-section' s.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="active_tab" value="section">
+                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
+                                data-confirm="Ushbu bo‘limni o‘chirmoqchimisiz? Unga bog‘langan barcha xizmatlar ham o‘chib ketishi mumkin!"
+                                data-confirm-title="Bo‘limni o‘chirish"
+                                data-confirm-btn="Ha, o‘chirish"
+                                title="O‘chirish">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                      <i class="bi bi-folder text-secondary fs-2 d-block mb-1"></i>
+                      <h6>Bo‘limlar mavjud emas</h6>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📝 2. QUYI XIZMATLAR -->
+    <div class="tab-pane fade {% if active_tab == 'subservice' %}show active{% endif %}" id="subservice" role="tabpanel">
+      <div class="row g-4">
+        <!-- Qo‘shish formasi -->
+        <div class="col-lg-5">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-plus-circle-fill text-primary"></i> Yangi Xizmat Qo‘shish
+            </h6>
+            <form method="POST" class="vstack gap-3">
+              {% csrf_token %}
+              <input type="hidden" name="active_tab" value="subservice">
+
+              <div>
+                <label class="form-label fw-semibold text-secondary small">Tegishli bo‘lim <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-folder2"></i></span>
+                  <select name="section" class="form-select" required>
+                    <option value="" disabled selected>Bo‘limni tanlang</option>
+                    {% for s in sections %}
+                    <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label fw-semibold text-secondary small">Xizmat nomi <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-card-checklist"></i></span>
+                  <input type="text" name="name" class="form-control" placeholder="Masalan: Ma'lumotnoma berish" required>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label fw-semibold text-secondary small">Xizmat tavsifi / Izoh</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Xizmat haqida ixtiyoriy izoh..."></textarea>
+              </div>
+
+              <button name="subservice_submit" type="submit" class="btn btn-primary py-2 fw-semibold shadow-sm mt-1">
+                <i class="bi bi-check-circle-fill me-1"></i> Xizmatni saqlash
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Mavjud xizmatlar ro‘yxati -->
+        <div class="col-lg-7">
+          <div class="card-dashboard p-3 p-md-4 h-100">
+            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-list-check text-success"></i> Mavjud Xizmatlar Ro‘yxati
+            </h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr class="text-uppercase text-secondary" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                    <th>#</th>
+                    <th>Xizmat nomi</th>
+                    <th>Tegishli bo‘lim</th>
+                    <th class="text-end">Amal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for ss in subservices %}
+                  <tr>
+                    <td class="text-muted fw-bold">{{ forloop.counter }}</td>
+                    <td><div class="fw-bold text-dark">{{ ss.name }}</div></td>
+                    <td><span class="badge bg-light text-secondary border">{{ ss.section.name }}</span></td>
+                    <td class="text-end">
+                      <form method="post" action="{% url 'delete-subservice' ss.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="active_tab" value="subservice">
+                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1"
+                                data-confirm="Ushbu xizmatni o‘chirmoqchimisiz?"
+                                data-confirm-title="Xizmatni o‘chirish"
+                                data-confirm-btn="Ha, o‘chirish"
+                                title="O‘chirish">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                      <i class="bi bi-card-checklist text-secondary fs-2 d-block mb-1"></i>
+                      <h6>Xizmatlar mavjud emas</h6>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
 </div>
-{% endblock %}
-
-{% block script %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-{% if messages %}
-  {% for message in messages %}
-    Swal.fire({
-      icon: 'success',
-      title: '{{ message|escapejs }}',
-      timer: 2000,
-      showConfirmButton: false
-    });
-  {% endfor %}
-{% endif %}
-</script>
 {% endblock %}

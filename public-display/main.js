@@ -3,10 +3,18 @@ const path = require('path');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const { autoUpdater } = require('electron-updater');
 
-app.setLoginItemSettings({
-    openAtLogin: true,
-    path: app.getPath("exe")
-});
+// Avtomatik audio ijro etishga ruxsat berish
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+app.commandLine.appendSwitch('disable-features', 'CrossOriginOpenerPolicy');
+
+try {
+    app.setLoginItemSettings({
+        openAtLogin: true,
+        path: app.getPath("exe")
+    });
+} catch (e) {
+    // Muhit bo'yicha e'tiborsiz qoldirish
+}
 
 // AutoUpdater sozlamalari
 autoUpdater.autoDownload = false; // Yangilashni tasdiqlash uchun
@@ -144,6 +152,8 @@ function createWindow() {
         width: 1280,
         height: 720,
         fullscreen: true,
+        autoHideMenuBar: true,
+        backgroundColor: '#1e1e2f',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,

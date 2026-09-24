@@ -7,7 +7,8 @@ ALLOWED_HOSTS = [
     'webtest.namspi.uz',
     'navbat.namspi.uz',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    'testserver'
 ]
 INSTALLED_APPS = [
 
@@ -105,6 +106,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGIN_URL = '/'  # Ruxsat etilmagan sahifalarga kirganda login sahifasiga yo‘naltiradi
 LOGIN_REDIRECT_URL = '/registrator/'  # Muvaffaqiyatli login bo‘lsa qayerga olib boradi
 LOGOUT_REDIRECT_URL = '/'  # Logoutdan keyin qayerga yo‘naltiradi
 

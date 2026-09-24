@@ -1,51 +1,140 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Operator Navbati{% endblock %}
+{% block title %}Operator Navbat Paneli — NamDPI Registrator{% endblock %}
 
 {% block content %}
 <style>
+  .operator-hero-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
   .table-card {
     background: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--card-border);
+    padding: 1.25rem;
     height: 100%;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .scroll-box { max-height: 400px; overflow-y: auto; }
-  .scroll-box::-webkit-scrollbar { width: 6px; }
-  .scroll-box::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 4px; }
-  .section-title { font-weight: 700; font-size: 1.3rem; color: #0d6efd; margin-bottom: 1rem; }
-  .timer-display { font-size: 1.4rem; font-weight: 700; color: #198754; }
-  .badge-result { padding: 0.25em 0.65em; border-radius: 0.4rem; font-size: 0.75rem; }
-  .badge-completed { background-color: #d4edda; color: #155724; }
-  .badge-rejected { background-color: #f8d7da; color: #721c24; }
+  .table-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  }
+  .scroll-box {
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .scroll-box::-webkit-scrollbar { width: 5px; }
+  .scroll-box::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 2px; }
+  
+  .section-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #f1f5f9;
+  }
 </style>
 
-<div class="container py-4">
+<div class="container-fluid px-0">
+  <!-- 🌟 OPERATOR TOP INFO BAR -->
+  <div class="operator-hero-card p-3 mb-4">
+    <div class="row align-items-center g-3">
+      <!-- Operator ma'lumotlari -->
+      <div class="col-md-6 d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-25 p-3 d-flex align-items-center justify-content-center border border-primary border-opacity-50" style="width: 48px; height: 48px; border-radius: var(--radius-sm);">
+          <i class="bi bi-person-badge-fill text-primary fs-4"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold mb-0 text-white">{{ request.user.full_name|default:request.user.username }}</h5>
+          <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+            <span class="badge {{ request.user.role_badge }}">{{ request.user.role_title }}</span>
+            {% if window_number %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1">
+                <i class="bi bi-window-dock me-1"></i> Oyna #{{ window_number }}
+              </span>
+            {% else %}
+              <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-2 py-1">
+                <i class="bi bi-exclamation-triangle me-1"></i> Oyna belgilanmagan
+              </span>
+            {% endif %}
+            <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-50 px-2 py-1">
+              <i class="bi bi-award me-1"></i> {{ profile.level|default:"Boshlovchi" }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistika va soat -->
+      <div class="col-md-6 text-md-end">
+        <div class="d-inline-flex gap-4 bg-white bg-opacity-10 px-3 py-2 border border-white border-opacity-10 text-center" style="border-radius: var(--radius-sm);">
+          <div>
+            <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem;">Bugun bajarildi</div>
+            <div class="fw-bold text-success fs-5 font-monospace" id="today-done-counter">{{ today_count }} ta</div>
+          </div>
+          <div class="border-start border-white border-opacity-10 ps-3">
+            <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem;">Kutmoqda</div>
+            <div class="fw-bold text-warning fs-5 font-monospace" id="today-waiting-counter">{{ waiting_count }} ta</div>
+          </div>
+          <div class="border-start border-white border-opacity-10 ps-3">
+            <div class="small text-secondary text-uppercase fw-semibold" style="font-size: 0.68rem;">Vaqt</div>
+            <div class="fw-bold text-white fs-5 font-monospace" id="operatorLiveClock">--:--:--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📊 ASOSIY 3 TA PANEL -->
   <div class="row g-4">
-    <div class="col-md-4">
+    <!-- 1. Kutayotgan navbatlar -->
+    <div class="col-lg-4">
       <div class="table-card d-flex flex-column">
-        <div class="section-title">Kutayotganlar</div>
-        <div id="waiting-tickets-box">
+        <div class="section-title">
+          <span><i class="bi bi-people-fill text-primary me-2"></i>Kutayotganlar</span>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1" id="waiting-badge">
+            {{ waiting_count }} ta
+          </span>
+        </div>
+        <div id="waiting-tickets-box" class="flex-grow-1">
           {% include 'services/_waiting_tickets.html' %}
         </div>
       </div>
     </div>
 
-    <div class="col-md-4">
+    <!-- 2. Ayni paytda xizmat ko'rsatilmoqda -->
+    <div class="col-lg-4">
       <div class="table-card">
-        <div class="section-title">Xizmat ko‘rsatilmoqda</div>
+        <div class="section-title">
+          <span><i class="bi bi-lightning-charge-fill text-success me-2"></i>Xizmat ko‘rsatilmoqda</span>
+          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1" id="serving-status-badge">
+            {% if serving_ticket %}Faol{% else %}Kutilmoqda{% endif %}
+          </span>
+        </div>
         <div id="serving-ticket-box">
           {% include 'services/_serving_ticket.html' %}
         </div>
       </div>
     </div>
 
-    <div class="col-md-4">
+    <!-- 3. Yakunlanganlar -->
+    <div class="col-lg-4">
       <div class="table-card d-flex flex-column">
-        <div class="section-title">Yakunlanganlar</div>
-        <div id="done-tickets-box">
+        <div class="section-title">
+          <span><i class="bi bi-check-circle-fill text-secondary me-2"></i>Yakunlanganlar</span>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1" id="done-badge">
+            {{ today_count }} ta
+          </span>
+        </div>
+        <div id="done-tickets-box" class="flex-grow-1">
           {% include 'services/_done_tickets.html' %}
         </div>
       </div>
@@ -56,19 +145,126 @@
 
 {% block script %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-function refreshQueues() {
-  fetch("{% url 'ajax-waiting-tickets' %}").then(r => r.json()).then(data => {
-    document.getElementById("waiting-tickets-box").innerHTML = data.html;
+  let currentServingId = "{{ serving_ticket.id|default:'' }}";
+  let timerIntervalId = null;
+
+  // Jonli soat
+  function updateOperatorClock() {
+    const el = document.getElementById("operatorLiveClock");
+    if (el) {
+      const now = new Date();
+      el.textContent = now.toLocaleTimeString('uz-UZ');
+    }
+  }
+  setInterval(updateOperatorClock, 1000);
+  updateOperatorClock();
+
+  // ==========================================
+  // ⏱ LIVE TIMER
+  // ==========================================
+  function startLiveTimer(startTimeStr) {
+    if (timerIntervalId) clearInterval(timerIntervalId);
+    const timerEl = document.getElementById("timer");
+    if (!timerEl || !startTimeStr) return;
+
+    const startTime = new Date(startTimeStr).getTime();
+
+    function update() {
+      const now = new Date().getTime();
+      const elapsedSeconds = Math.max(0, Math.floor((now - startTime) / 1000));
+      const m = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+      const s = String(elapsedSeconds % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+    }
+
+    update();
+    timerIntervalId = setInterval(update, 1000);
+  }
+
+  // ==========================================
+  // 🔄 REALTIME AUTO-REFRESH & POLLING
+  // ==========================================
+  function refreshAllQueues() {
+    // 1. Kutayotganlar
+    fetch("{% url 'ajax-waiting-tickets' %}")
+      .then(r => r.json())
+      .then(data => {
+        const box = document.getElementById("waiting-tickets-box");
+        if (box && data.html) box.innerHTML = data.html;
+        const countBadge = document.getElementById("waiting-badge");
+        const topCounter = document.getElementById("today-waiting-counter");
+        if (countBadge && data.count !== undefined) countBadge.textContent = `${data.count} ta`;
+        if (topCounter && data.count !== undefined) topCounter.textContent = `${data.count} ta`;
+      })
+      .catch(() => {});
+
+    // 2. Xizmat ko'rsatilayotgan
+    fetch("{% url 'ajax-serving-ticket' %}")
+      .then(r => r.json())
+      .then(data => {
+        const box = document.getElementById("serving-ticket-box");
+        const statusBadge = document.getElementById("serving-status-badge");
+        const newTicketId = String(data.ticket_id || "");
+
+        if (newTicketId !== currentServingId) {
+          if (box && data.html) box.innerHTML = data.html;
+          currentServingId = newTicketId;
+
+          if (data.has_ticket && data.ticket_number) {
+            if (statusBadge) statusBadge.textContent = "Faol";
+            const timerStartEl = document.getElementById("timer-start-time");
+            if (timerStartEl) startLiveTimer(timerStartEl.value);
+          } else {
+            if (statusBadge) statusBadge.textContent = "Kutilmoqda";
+            if (timerIntervalId) clearInterval(timerIntervalId);
+          }
+        }
+      })
+      .catch(() => {});
+
+    // 3. Yakunlanganlar
+    fetch("{% url 'ajax-done-tickets' %}")
+      .then(r => r.json())
+      .then(data => {
+        const box = document.getElementById("done-tickets-box");
+        if (box && data.html) box.innerHTML = data.html;
+        const countBadge = document.getElementById("done-badge");
+        const topCounter = document.getElementById("today-done-counter");
+        if (countBadge && data.count !== undefined) countBadge.textContent = `${data.count} ta`;
+        if (topCounter && data.count !== undefined) topCounter.textContent = `${data.count} ta`;
+      })
+      .catch(() => {});
+  }
+
+  // ==========================================
+  // 🚀 INITIALIZATION
+  // ==========================================
+  document.addEventListener("DOMContentLoaded", () => {
+    // Boshlang'ich taymerni ishga tushirish
+    const timerStartEl = document.getElementById("timer-start-time");
+    if (timerStartEl && timerStartEl.value) {
+      startLiveTimer(timerStartEl.value);
+    }
+
+    // Har 3 soniyada avtomatik yangilanish
+    setInterval(refreshAllQueues, 3000);
   });
-  fetch("{% url 'ajax-serving-ticket' %}").then(r => r.json()).then(data => {
-    document.getElementById("serving-ticket-box").innerHTML = data.html;
-    const timerStart = document.getElementById("timer-start-time");
-    if (timerStart) startLiveTimer(timerStart.value);
-  });
-  fetch("{% url 'ajax-done-tickets' %}").then(r => r.json()).then(data => {
-    document.getElementById("done-tickets-box").innerHTML = data.html;
-  });
-}
+
+  // Django Messages / Swal bildirishnomalari
+  {% if messages %}
+    {% for message in messages %}
+      Swal.fire({
+        icon: "{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}",
+        title: "{{ message|escapejs }}",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
+    {% endfor %}
+  {% endif %}
 </script>
 {% endblock %}

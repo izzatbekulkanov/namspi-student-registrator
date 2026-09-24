@@ -48,13 +48,13 @@ def dashboard(request):
     level = profile.level or "Boshlovchi"
 
     level_icons = {
-        "Boshlovchi": "🟢",
-        "Oddiy": "⭐",
-        "Yaxshi": "🌟",
-        "Usta": "🔥",
-        "VIP": "👑"
+        "Boshlovchi": "bi bi-shield-check text-success",
+        "Oddiy": "bi bi-star-fill text-primary",
+        "Yaxshi": "bi bi-award-fill text-warning",
+        "Usta": "bi bi-fire text-danger",
+        "VIP": "bi bi-gem text-info"
     }
-    level_icon = level_icons.get(level, "🟢")
+    level_icon = level_icons.get(level, "bi bi-shield-check text-success")
 
     return render(request, 'services/dashboard.html', {
         'has_window': has_window,
@@ -159,7 +159,7 @@ def delete_assignment(request, pk):
 
 @login_required
 def operator_queue_view(request):
-    today = date.today()  # ✅ timezone muammosiz ishlaydi
+    today = now().date()
 
     assigned_services = AssignedService.objects.filter(
         user=request.user
@@ -169,21 +169,25 @@ def operator_queue_view(request):
     waiting_tickets = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="waiting"
-    ).order_by('created_at')
+    ).select_related('service', 'service__section').order_by('created_at')
 
     serving_ticket = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="serving",
         served_by=request.user
-    ).first()
+    ).select_related('service', 'service__section').first()
 
-    # ✅ faqat bugungi yakunlangan xizmatlar
+    # Operatorning bugungi oyna raqami
+    work_window = DailyWorkWindow.objects.filter(operator=request.user, date=today).first()
+    window_number = work_window.window_number if work_window else None
+
+    # Faqat bugungi yakunlangan xizmatlar
     done_tickets = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="done",
         served_by=request.user,
         ended_at__date=today
-    ).order_by('-ended_at')[:20]
+    ).select_related('service', 'service__section').order_by('-ended_at')[:30]
 
     for d in done_tickets:
         if d.started_at and d.ended_at:
@@ -195,39 +199,71 @@ def operator_queue_view(request):
         else:
             d.duration_display = "-"
 
+    # Operator statistikasi
+    profile, _ = OperatorProfile.objects.get_or_create(operator=request.user)
+    today_count = QueueTicket.objects.filter(served_by=request.user, status='done', ended_at__date=today).count()
+
+    just_served_ticket = request.session.pop('just_served_ticket', None)
+    just_served_window = request.session.pop('just_served_window', None)
+
     return render(request, 'services/operator_queue.html', {
         'waiting_tickets': waiting_tickets,
         'serving_ticket': serving_ticket,
         'done_tickets': done_tickets,
+        'window_number': window_number,
+        'profile': profile,
+        'today_count': today_count,
+        'waiting_count': waiting_tickets.count(),
+        'just_served_ticket': just_served_ticket,
+        'just_served_window': just_served_window or window_number,
     })
 
 
 @login_required
 def ajax_waiting_tickets(request):
     assigned = AssignedService.objects.filter(user=request.user).values_list('service_id', flat=True)
-    waiting_tickets = QueueTicket.objects.filter(service_id__in=assigned, status='waiting').order_by('created_at')
+    waiting_tickets = QueueTicket.objects.filter(
+        service_id__in=assigned, status='waiting'
+    ).select_related('service', 'service__section').order_by('created_at')
     html = render_to_string('services/_waiting_tickets.html', {'waiting_tickets': waiting_tickets}, request=request)
-    return JsonResponse({'html': html})
+    return JsonResponse({'html': html, 'count': waiting_tickets.count()})
 
 
 @login_required
 def ajax_serving_ticket(request):
+    today = now().date()
     assigned = AssignedService.objects.filter(user=request.user).values_list('service_id', flat=True)
-    serving_ticket = QueueTicket.objects.filter(service_id__in=assigned, status='serving',
-                                                served_by=request.user).first()
-    html = render_to_string('services/_serving_ticket.html', {'serving_ticket': serving_ticket}, request=request)
-    return JsonResponse({'html': html})
+    serving_ticket = QueueTicket.objects.filter(
+        service_id__in=assigned, status='serving', served_by=request.user
+    ).select_related('service', 'service__section').first()
+
+    work_window = DailyWorkWindow.objects.filter(operator=request.user, date=today).first()
+    window_number = work_window.window_number if work_window else (serving_ticket.window_number if serving_ticket else None)
+
+    html = render_to_string('services/_serving_ticket.html', {
+        'serving_ticket': serving_ticket,
+        'window_number': window_number,
+    }, request=request)
+    return JsonResponse({
+        'html': html,
+        'has_ticket': bool(serving_ticket),
+        'ticket_id': serving_ticket.id if serving_ticket else None,
+        'ticket_number': serving_ticket.ticket_number if serving_ticket else None,
+        'window_number': window_number,
+    })
 
 
 @login_required
 def ajax_done_tickets(request):
+    today = now().date()
     assigned_services = AssignedService.objects.filter(user=request.user).values_list('service_id', flat=True)
 
     done_tickets = QueueTicket.objects.filter(
         service_id__in=assigned_services,
         status="done",
-        served_by=request.user
-    ).order_by('-ended_at')[:20]
+        served_by=request.user,
+        ended_at__date=today
+    ).select_related('service', 'service__section').order_by('-ended_at')[:30]
 
     for ticket in done_tickets:
         if ticket.started_at and ticket.ended_at:
@@ -242,7 +278,7 @@ def ajax_done_tickets(request):
         "done_tickets": done_tickets
     }, request=request)
 
-    return JsonResponse({"html": html})
+    return JsonResponse({"html": html, "count": done_tickets.count()})
 
 
 @require_POST
@@ -339,45 +375,117 @@ def statistics_display_view(request):
     selected_month = int(request.GET.get("month", today.month))
     selected_day = request.GET.get("day")
 
-    tickets = QueueTicket.objects.filter(
+    # Base query for all tickets in the selected month & year
+    base_month_tickets = QueueTicket.objects.filter(
         status="done",
         created_at__year=selected_year,
         created_at__month=selected_month,
     )
 
     if selected_day:
-        tickets = tickets.filter(created_at__day=int(selected_day))
+        filtered_tickets = base_month_tickets.filter(created_at__day=int(selected_day))
+    else:
+        filtered_tickets = base_month_tickets
 
-    # faqat shu oy/kunda ishlagan operatorlar
-    active_users = CustomUser.objects.filter(
-        id__in=tickets.values_list("served_by", flat=True).distinct()
-    )
+    # Barcha faol xodimlar
+    users = CustomUser.objects.filter(is_active=True).order_by("-is_leader", "-is_operator", "first_name", "username")
 
     staff_stats = []
-    for user in active_users:
-        user_tickets = tickets.filter(served_by=user)
+    total_month_completed = 0
+    total_month_rejected = 0
+    total_month_total = 0
+
+    total_today_completed = 0
+    total_today_rejected = 0
+    total_today_total = 0
+
+    for user in users:
+        # Tanlangan davr (oy yoki aniq kun) bo‘yicha chiptalar
+        user_tickets = filtered_tickets.filter(served_by=user)
+        m_completed = user_tickets.filter(result="completed").count()
+        m_rejected = user_tickets.filter(result="rejected").count()
+        m_total = user_tickets.count()
+
+        # Bugungi kun bo‘yicha
+        user_today_tickets = QueueTicket.objects.filter(
+            served_by=user,
+            status="done",
+            created_at__date=today
+        )
+        t_completed = user_today_tickets.filter(result="completed").count()
+        t_rejected = user_today_tickets.filter(result="rejected").count()
+        t_total = user_today_tickets.count()
+
+        # Jami butun faoliyat davomida
+        user_all_tickets = QueueTicket.objects.filter(served_by=user, status="done")
+        all_completed = user_all_tickets.filter(result="completed").count()
+        all_rejected = user_all_tickets.filter(result="rejected").count()
+        all_total = user_all_tickets.count()
+
+        total_month_completed += m_completed
+        total_month_rejected += m_rejected
+        total_month_total += m_total
+
+        total_today_completed += t_completed
+        total_today_rejected += t_rejected
+        total_today_total += t_total
 
         staff_stats.append({
             "user": user,
             "role": user.role_title(),
-            "department": user.department_name or "-",
-            "position": user.staff_position or "-",
-            "today": user_tickets.filter(created_at__date=today).count(),
-            "this_month": user_tickets.count(),
-            "total": QueueTicket.objects.filter(served_by=user, status="done").count(),
-            "level": getattr(getattr(user, "operatorprofile", None), "level", "—"),
+            "department": user.department_name or "Bo‘limsiz",
+            "position": user.staff_position or "Operator",
+            # Tanlangan oy / kun
+            "month_completed": m_completed,
+            "month_rejected": m_rejected,
+            "month_total": m_total,
+            # Bugun
+            "today_completed": t_completed,
+            "today_rejected": t_rejected,
+            "today_total": t_total,
+            # Jami
+            "all_completed": all_completed,
+            "all_rejected": all_rejected,
+            "all_total": all_total,
+            "level": getattr(getattr(user, "operatorprofile", None), "level", "Boshlovchi"),
         })
 
-    # 🔢 Oydagi kunlar ro‘yxati
+    # Oydagi kunlar ro‘yxati
     days_in_month = range(1, calendar.monthrange(selected_year, selected_month)[1] + 1)
+
+    UZBEK_MONTHS = [
+        (1, "Yanvar"),
+        (2, "Fevral"),
+        (3, "Mart"),
+        (4, "Aprel"),
+        (5, "May"),
+        (6, "Iyun"),
+        (7, "Iyul"),
+        (8, "Avgust"),
+        (9, "Sentabr"),
+        (10, "Oktabr"),
+        (11, "Noyabr"),
+        (12, "Dekabr"),
+    ]
+
+    selected_month_name = dict(UZBEK_MONTHS).get(selected_month, "")
 
     context = {
         "staff_stats": staff_stats,
         "selected_year": selected_year,
         "selected_month": selected_month,
+        "selected_month_name": selected_month_name,
         "selected_day": selected_day,
         "days_in_month": days_in_month,
         "years": range(today.year - 5, today.year + 1),
-        "months": list(enumerate(calendar.month_name))[1:],
+        "months": UZBEK_MONTHS,
+        "summary": {
+            "month_completed": total_month_completed,
+            "month_rejected": total_month_rejected,
+            "month_total": total_month_total,
+            "today_completed": total_today_completed,
+            "today_rejected": total_today_rejected,
+            "today_total": total_today_total,
+        }
     }
     return render(request, "queueing/statistics_display.html", context)

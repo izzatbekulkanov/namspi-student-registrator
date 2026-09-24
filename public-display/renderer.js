@@ -1,9 +1,13 @@
 const API_URL = "https://navbat.namspi.uz/api/tickets/today/";
 
-// Oldingi navbatlar ro‘yxatini saqlash
-let previousTickets = [];
+const DEFAULT_API_URL = "https://navbat.namspi.uz/api/tickets/serving/";
+let currentApiUrl = localStorage.getItem("API_URL") || DEFAULT_API_URL;
 
-// E’lonlar navbati
+// Oldingi navbatlarni saqlash va yangi navbatlarni aniqlash
+let announcedTicketIds = new Set();
+let isFirstLoad = true;
+
+// E’lonlar navbati (Audio / Visual Queue)
 let announcementQueue = [];
 let isAnnouncing = false;
 
@@ -156,8 +160,9 @@ async function announceNextTicket() {
     isAnnouncing = true;
     const ticket = announcementQueue.shift();
 
-    const announcement = document.getElementById("announcement");
-    const announcementText = document.getElementById("announcement-text");
+    const announcementEl = document.getElementById("announcement");
+    const ticketEl = document.getElementById("announcement-ticket");
+    const windowEl = document.getElementById("announcement-window");
 
     const windowLabel = ticket.window_number ? `${ticket.window_number}-Oyna` : "Qabul oynasi";
     const speechText = buildSpeechText(ticket);

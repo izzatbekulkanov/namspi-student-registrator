@@ -1,8 +1,10 @@
+#!/bin/bash
+
 # Fayl joylashgan papkaga o‘tamiz
-Set-Location "C:\Users\Izunite\Documents\GitHub\NamSPI_REGISTRATOR\Register"
+cd "$(dirname "$0")"
 
 # Virtual muhitni faollashtiramiz
-.\venv\Scripts\Activate.ps1
+source venv/bin/activate
 
 # Daphne serverni ishga tushiramiz
-daphne -b 0.0.0.0 -p 8000 core.asgi:application
+exec daphne -b 0.0.0.0 -p 8001 core.asgi:application
