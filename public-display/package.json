@@ -1,6 +1,6 @@
 {
     "name": "navbat-app",
-    "version": "1.2.2",
+    "version": "1.3.0",
     "description": "NamDPI xizmat ko‘rsatilayotgan chiptalar monitori",
     "main": "main.js",
     "scripts": {
