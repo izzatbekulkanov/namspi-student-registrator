@@ -164,15 +164,13 @@ async function announceNextTicket() {
     const ticketEl = document.getElementById("announcement-ticket");
     const windowEl = document.getElementById("announcement-window");
 
-    const windowLabel = ticket.window_number ? `${ticket.window_number}-Oyna` : "Qabul oynasi";
+    const windowLabel = ticket.window_number ? `${ticket.window_number} - oyna` : "Qabul oynasi";
     const speechText = buildSpeechText(ticket);
 
     // Vizual ko'rinishni yangilash
-    announcementText.innerHTML = `
-        <div class="announcement-ticket">Navbat: ${ticket.ticket_number}</div>
-        <div class="announcement-window">${windowLabel}</div>
-    `;
-    announcement.classList.add("active");
+    if (ticketEl) ticketEl.textContent = ticket.ticket_number;
+    if (windowEl) windowEl.textContent = windowLabel;
+    if (announcementEl) announcementEl.classList.add("active");
 
     // Edge TTS audioni orqa fonda tayyorlab olish
     const ttsPromise = (async () => {
@@ -193,7 +191,7 @@ async function announceNextTicket() {
     // E'lonni yakunlash va keyingisiga o'tish
     const finishAnnouncement = () => {
         setTimeout(() => {
-            announcement.classList.remove("active");
+            if (announcementEl) announcementEl.classList.remove("active");
             isAnnouncing = false;
             announceNextTicket();
         }, 1500); // Ovoz tugagach, 1.5 soniya ko'rinib turadi
