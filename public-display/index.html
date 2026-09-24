@@ -24,7 +24,8 @@
 <!-- MAIN CONTENT -->
 <main class="main">
     <!-- CHAP PANEL -->
-    <section class="left-panel">
+    <section class="left-panel glass">
+        <div style="text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 12px; color: #4ade80; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Xizmat ko'rsatilmoqda</div>
         <table class="ticket-table">
             <thead>
             <tr>
@@ -36,6 +37,19 @@
             <!-- JS orqali to‘ldiriladi -->
             </tbody>
         </table>
+
+        <div style="text-align: center; font-size: 22px; font-weight: bold; margin: 24px 0 12px 0; color: #60a5fa; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Kutayotganlar</div>
+        <table class="ticket-table">
+            <thead>
+            <tr>
+                <th>Navbat</th>
+                <th>Holat</th>
+            </tr>
+            </thead>
+            <tbody id="waiting-body">
+            <!-- JS orqali to‘ldiriladi -->
+            </tbody>
+        </table>
     </section>
 
     <!-- O‘NG SECTION -->
@@ -44,10 +58,6 @@
             <video autoplay muted loop>
                 <source src="assets/video/intro.webm" type="video/webm" />
             </video>
-            <!-- E’lon oynasi -->
-            <div class="announcement glass" id="announcement">
-                <span id="announcement-text"></span>
-            </div>
         </div>
         <!-- Promo ma'lumot -->
         <div class="promo-info glass">Namangan Davlat Pedagogika Instituti | RTTM</div>
@@ -58,6 +68,42 @@
 <footer class="footer glass">
     © 2025 Namangan Davlat Pedagogika Instituti — RTTM
 </footer>
+
+<!-- MARKAZIY KATTA E'LON OYNASI (BUTUN EKRAN MARKAZIDA) -->
+<div class="announcement-overlay" id="announcement">
+    <div class="announcement-card glass">
+        <div class="announcement-badge">Xizmatga chaqiruv</div>
+        <div id="announcement-text">
+            <!-- JS orqali to‘ldiriladi -->
+        </div>
+    </div>
+</div>
+
+<!-- YANGILANISH SO'ROV MODAL OYNASI -->
+<div class="update-modal-overlay" id="update-modal">
+    <div class="update-card glass">
+        <div class="update-icon">🚀</div>
+        <h2 class="update-title">Yangi versiya mavjud!</h2>
+        <p class="update-desc" id="update-desc">
+            Dasturning yangi versiyasi (<span id="new-version-tag"></span>) chiqdi.<br/>
+            Tizim to‘g‘ri va uzluksiz ishlashi uchun ilovani yangilang.
+        </p>
+
+        <div class="update-progress-container" id="update-progress-container" style="display: none;">
+            <div class="update-progress-track">
+                <div class="update-progress-bar" id="update-progress-bar" style="width: 0%;"></div>
+            </div>
+            <div class="update-progress-info">
+                <span id="update-speed">Yuklanmoqda...</span>
+                <span id="update-percent">0%</span>
+            </div>
+        </div>
+
+        <div class="update-actions">
+            <button id="btn-update-action" class="btn-update">Hozir yangilash</button>
+        </div>
+    </div>
+</div>
 
 <!-- SCRIPT -->
 <script src="script.js"></script>

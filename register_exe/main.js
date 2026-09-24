@@ -2,6 +2,11 @@ const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const os = require('os');
+const { autoUpdater } = require('electron-updater');
+
+// AutoUpdater sozlamalari
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
 
 const logFilePath = path.join(app.getPath('userData'), 'app.log');
 
@@ -14,6 +19,50 @@ async function logToFile(message, level = 'INFO') {
     } catch (err) {
         console.error(`Failed to write to log file: ${err.message}`);
     }
+}
+
+function setupAutoUpdater(mainWindow) {
+    try {
+        autoUpdater.setFeedURL({
+            provider: "generic",
+            url: "https://raw.githubusercontent.com/izzatbekulkanov/NamSPI_REGISTRATOR/main/releases/register-exe/"
+        });
+    } catch (e) {
+        logToFile(`setFeedURL xatosi: ${e.message}`, 'WARNING');
+    }
+
+    autoUpdater.on('update-available', (info) => {
+        logToFile(`Yangi versiya mavjud: ${info.version}`);
+        mainWindow.webContents.send('update-available', info);
+    });
+
+    autoUpdater.on('download-progress', (progressObj) => {
+        mainWindow.webContents.send('update-progress', progressObj);
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+        logToFile(`Yangi versiya yuklab olindi: ${info.version}`);
+        mainWindow.webContents.send('update-downloaded', info);
+    });
+
+    autoUpdater.on('error', (err) => {
+        logToFile(`AutoUpdater xatosi: ${err ? err.message : 'Noma‘lum xato'}`, 'ERROR');
+        mainWindow.webContents.send('update-error', err ? err.message : 'Yangilanishda xatolik yuz berdi');
+    });
+
+    // Dastur ishga tushgach 5 soniyadan keyin yangilanish tekshiriladi
+    setTimeout(() => {
+        autoUpdater.checkForUpdates().catch(err => {
+            logToFile(`Yangilanish tekshirishda xato: ${err.message}`, 'WARNING');
+        });
+    }, 5000);
+
+    // Har 15 daqiqada yangi versiyani tekshirib turish
+    setInterval(() => {
+        autoUpdater.checkForUpdates().catch(err => {
+            logToFile(`Davriy yangilanish tekshirishda xato: ${err.message}`, 'WARNING');
+        });
+    }, 15 * 60 * 1000);
 }
 
 app.whenReady().then(async () => {
@@ -34,8 +83,9 @@ app.whenReady().then(async () => {
     await logToFile(`Cache Path: ${cachePath}`);
 
     const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1024,
+        height: 768,
+        fullscreen: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -44,8 +94,10 @@ app.whenReady().then(async () => {
         },
     });
 
-    mainWindow.loadFile('index.html');
+    mainWindow.loadFile(path.join(__dirname, 'index.html'));
     await logToFile('Ilova oynasi va menyu yaratildi');
+
+    setupAutoUpdater(mainWindow);
 
     const menu = Menu.buildFromTemplate([
         {
@@ -107,6 +159,26 @@ app.whenReady().then(async () => {
 
     await logToFile('Ilova muvaffaqiyatli ishga tushdi');
 
+    // Auto-update IPC handlers
+    ipcMain.handle('start-download-update', async () => {
+        try {
+            await autoUpdater.downloadUpdate();
+            return { success: true };
+        } catch (error) {
+            logToFile(`Update download error: ${error.message}`, 'ERROR');
+            return { success: false, error: error.message };
+        }
+    });
+
+    ipcMain.handle('install-update', () => {
+        autoUpdater.quitAndInstall(false, true);
+    });
+
+    ipcMain.handle('get-app-version', () => {
+        return app.getVersion();
+    });
+
+    // Printer va boshqa mavjud handlerlar
     ipcMain.handle('get-printers', async () => {
         try {
             const printers = await mainWindow.webContents.getPrintersAsync();

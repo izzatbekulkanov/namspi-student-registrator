@@ -1,0 +1,8 @@
+version: 1.2.0
+files:
+  - url: https://github.com/izzatbekulkanov/NamSPI_REGISTRATOR/releases/download/v1.2.0/NamDPI-Navbat-Paneli-Setup-1.2.0.exe
+    sha512: K2ejscXeKtJgjrWXHM+KQQpcUtg+GwnSS5H1ZBjPj0vri+5uUvIQTTxsoG1fknCJhZPjsjaBA357C6Q//olKgw==
+    size: 92658516
+path: https://github.com/izzatbekulkanov/NamSPI_REGISTRATOR/releases/download/v1.2.0/NamDPI-Navbat-Paneli-Setup-1.2.0.exe
+sha512: K2ejscXeKtJgjrWXHM+KQQpcUtg+GwnSS5H1ZBjPj0vri+5uUvIQTTxsoG1fknCJhZPjsjaBA357C6Q//olKgw==
+releaseDate: '2026-09-24T10:58:29.799Z'

@@ -281,3 +281,134 @@ footer {
 .hidden {
   display: none !important;
 }
+
+/* AUTO-UPDATE MODAL */
+.update-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 8, 18, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.update-modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.update-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(56, 189, 248, 0.5);
+  border-radius: 24px;
+  padding: 36px 44px;
+  box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  width: 480px;
+  max-width: 90vw;
+  color: var(--text);
+}
+
+.update-icon {
+  font-size: 50px;
+  animation: updateBounce 2s infinite ease-in-out;
+}
+
+@keyframes updateBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.update-title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.update-desc {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0;
+  opacity: 0.9;
+}
+
+#new-version-tag {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.update-progress-container {
+  width: 100%;
+  margin: 10px 0;
+}
+
+.update-progress-track {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.update-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #4ade80);
+  border-radius: 6px;
+  transition: width 0.2s ease;
+}
+
+.update-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
+.update-actions {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.btn-update {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
+  transition: all 0.25s ease;
+}
+
+.btn-update:hover {
+  background: linear-gradient(135deg, #0369a1, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6);
+}
+
+.btn-update:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+

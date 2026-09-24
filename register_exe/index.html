@@ -61,6 +61,43 @@
   </div>
 </div>
 
+<!-- ⏳ Modal: Loader -->
+<div class="modal hidden" id="loader-modal" style="z-index: 9999;">
+  <div class="modal-content" style="text-align: center; background: rgba(0,0,0,0.8); color: white; border: none;">
+    <div style="border: 4px solid rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 50%; border-left-color: #09f; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
+    <h3 id="loader-text" style="margin:0;">Iltimos kuting...</h3>
+    <style>
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+  </div>
+</div>
+
+<!-- 🚀 Modal: Auto-Update (Majburiy yangilash) -->
+<div class="update-modal-overlay" id="update-modal">
+  <div class="update-card">
+    <div class="update-icon">🚀</div>
+    <h2 class="update-title">Yangi versiya mavjud!</h2>
+    <p class="update-desc" id="update-desc">
+      Dasturning yangi versiyasi (<span id="new-version-tag"></span>) chiqdi.<br/>
+      Tizim to‘g‘ri va barqaror ishlashi uchun ilovani yangilang.
+    </p>
+
+    <div class="update-progress-container" id="update-progress-container" style="display: none;">
+      <div class="update-progress-track">
+        <div class="update-progress-bar" id="update-progress-bar" style="width: 0%;"></div>
+      </div>
+      <div class="update-progress-info">
+        <span id="update-speed">Yuklanmoqda...</span>
+        <span id="update-percent">0%</span>
+      </div>
+    </div>
+
+    <div class="update-actions">
+      <button id="btn-update-action" class="btn-update">Hozir yangilash</button>
+    </div>
+  </div>
+</div>
+
 <audio id="click-sound" src="assets/click.wav" preload="auto"></audio>
 
 <script src="print.js"></script>
@@ -77,6 +114,15 @@
     } catch (err) {
       console.error('❌ Log yozishda xato:', err.message);
     }
+  }
+
+  function showLoader(text = "Iltimos kuting...") {
+    document.getElementById("loader-text").innerText = text;
+    document.getElementById("loader-modal").classList.remove("hidden");
+  }
+
+  function hideLoader() {
+    document.getElementById("loader-modal").classList.add("hidden");
   }
 
   function playClick() {
@@ -98,12 +144,14 @@
 
   async function loadSections() {
     try {
+      showLoader("Bo'limlar yuklanmoqda...");
       logToFile('Bo‘limlarni yuklash boshlandi');
       const cached = localStorage.getItem("sections");
       if (cached) {
         const data = JSON.parse(cached);
         renderSections(data.sections);
         logToFile('Bo‘limlar keshdan yuklandi');
+        hideLoader();
         return;
       }
 
@@ -116,6 +164,8 @@
     } catch (error) {
       logToFile(`Bo‘limlarni yuklashda xato: ${error.message}`, 'ERROR');
       showModal("Xatolik", "Bo‘limlarni yuklashda xato yuz berdi. Iltimos, keyinroq urinib ko‘ring.");
+    } finally {
+      hideLoader();
     }
   }
 
@@ -139,6 +189,7 @@
 
   async function loadSubservices(sectionId) {
     try {
+      showLoader("Xizmatlar yuklanmoqda...");
       logToFile(`Xizmatlarni yuklash boshlandi: sectionId=${sectionId}`);
       const cacheKey = `subservices_${sectionId}`;
       const cached = localStorage.getItem(cacheKey);
@@ -146,6 +197,7 @@
         const data = JSON.parse(cached);
         renderSubservices(data.subservices);
         logToFile('Xizmatlar keshdan yuklandi');
+        hideLoader();
         return;
       }
 
@@ -158,6 +210,8 @@
     } catch (error) {
       logToFile(`Xizmatlarni yuklashda xato: ${error.message}`, 'ERROR');
       showModal("Xatolik", "Xizmatlarni yuklashda xato yuz berdi. Iltimos, keyinroq urinib ko‘ring.");
+    } finally {
+      hideLoader();
     }
   }
 
@@ -184,6 +238,7 @@
 
   async function createTicket(subserviceId) {
     try {
+      showLoader("Chipta olinmoqda...");
       logToFile(`Chipta yaratish boshlandi: subserviceId=${subserviceId}`);
       const res = await fetch(`${apiBase}/ticket/create/${subserviceId}/`, {
         method: "POST",
@@ -202,6 +257,8 @@
     } catch (error) {
       logToFile(`Chipta yaratishda xato: ${error.message}`, 'ERROR');
       showModal("Xatolik", `Chipta yaratishda xato yuz berdi: ${error.message}`);
+    } finally {
+      hideLoader();
     }
   }
 
@@ -213,7 +270,7 @@
     logToFile(`Modal ochildi: title=${title}`);
   }
 
-  function closeModal() {
+  async function closeModal() {
     document.getElementById("modal").classList.add("hidden");
     document.querySelector(".overlay").style.pointerEvents = "auto";
     logToFile('Modal yopildi');
@@ -221,13 +278,16 @@
     if (lastTicketData) {
       try {
         if (window.printAPI && typeof window.printAPI.printTicket === 'function') {
-          window.printAPI.printTicket(lastTicketData);
+          showLoader("Chipta chop etilmoqda...");
+          await window.printAPI.printTicket(lastTicketData);
           logToFile(`print.js printTicket chaqirildi: ticket_number=${lastTicketData.ticket_number}`);
         } else {
           logToFile('printAPI.printTicket funksiyasi topilmadi', 'ERROR');
         }
       } catch (error) {
         logToFile(`print.js printTicket chaqirishda xato: ${error.message}`, 'ERROR');
+      } finally {
+        hideLoader();
       }
     } else {
       logToFile('Chipta ma‘lumotlari topilmadi', 'WARNING');
@@ -312,12 +372,15 @@
         showModal("Xatolik", "Oxirgi chipta ma'lumotlari topilmadi.");
         return;
       }
+      showLoader("Chipta qayta chop etilmoqda...");
       logToFile(`Oxirgi chipta qayta chop etilmoqda: ticket_number=${lastTicketData.ticket_number}`);
       await window.printAPI.printTicket(lastTicketData);
       showModal("Muvaffaqiyat", `Chipta ${lastTicketData.ticket_number} qayta chop etildi.`);
     } catch (err) {
       logToFile(`Chipta qayta chop etishda xato: ${err.message}`, 'ERROR');
       showModal("Xatolik", `Chipta qayta chop etishda xato: ${err.message}`);
+    } finally {
+      hideLoader();
     }
   }
 
@@ -387,6 +450,90 @@
   window.electronAPI.onRestartApp(() => {
     restartApp();
   });
+
+  // ==================== AUTO-UPDATE BOSHQARUVI ====================
+  if (window.electronAPI) {
+    const updateModal = document.getElementById("update-modal");
+    const newVersionTag = document.getElementById("new-version-tag");
+    const updateProgressContainer = document.getElementById("update-progress-container");
+    const updateProgressBar = document.getElementById("update-progress-bar");
+    const updatePercent = document.getElementById("update-percent");
+    const updateSpeed = document.getElementById("update-speed");
+    const btnUpdateAction = document.getElementById("btn-update-action");
+    const updateDesc = document.getElementById("update-desc");
+
+    // 1. Yangi versiya topilganda
+    if (typeof window.electronAPI.onUpdateAvailable === "function") {
+      window.electronAPI.onUpdateAvailable((info) => {
+        logToFile(`Yangi versiya topildi: v${info.version}`);
+        if (newVersionTag) newVersionTag.textContent = "v" + info.version;
+        if (updateModal) updateModal.classList.add("active");
+      });
+    }
+
+    // 2. Foydalanuvchi "Hozir yangilash" tugmasini bosganda
+    if (btnUpdateAction) {
+      btnUpdateAction.addEventListener("click", async () => {
+        if (btnUpdateAction.getAttribute("data-status") === "downloaded") {
+          logToFile("Yangilanish o'rnatilmoqda (installUpdate)");
+          window.electronAPI.installUpdate();
+          return;
+        }
+
+        btnUpdateAction.disabled = true;
+        btnUpdateAction.textContent = "Yuklab olinmoqda...";
+        if (updateProgressContainer) updateProgressContainer.style.display = "block";
+
+        try {
+          await window.electronAPI.startDownloadUpdate();
+        } catch (err) {
+          logToFile(`Yangilanish yuklash xatosi: ${err.message}`, "ERROR");
+          btnUpdateAction.disabled = false;
+          btnUpdateAction.textContent = "Qayta urinish";
+        }
+      });
+    }
+
+    // 3. Yuklanish foizi va tezligi
+    if (typeof window.electronAPI.onUpdateProgress === "function") {
+      window.electronAPI.onUpdateProgress((progressObj) => {
+        const percent = Math.round(progressObj.percent || 0);
+        if (updateProgressBar) updateProgressBar.style.width = percent + "%";
+        if (updatePercent) updatePercent.textContent = percent + "%";
+
+        const speedKb = Math.round((progressObj.bytesPerSecond || 0) / 1024);
+        if (updateSpeed) {
+          updateSpeed.textContent = speedKb > 1024 
+            ? (speedKb / 1024).toFixed(1) + " MB/s" 
+            : speedKb + " KB/s";
+        }
+      });
+    }
+
+    // 4. Yuklab bo'lingach
+    if (typeof window.electronAPI.onUpdateDownloaded === "function") {
+      window.electronAPI.onUpdateDownloaded((info) => {
+        logToFile(`Yangilanish muvaffaqiyatli yuklab olindi: v${info.version}`);
+        if (updateDesc) {
+          updateDesc.innerHTML = `Yangi versiya (<b>v${info.version}</b>) muvaffaqiyatli yuklandi!<br/>O‘rnatish uchun quyidagi tugmani bosing:`;
+        }
+        if (updateProgressContainer) updateProgressContainer.style.display = "none";
+        if (btnUpdateAction) {
+          btnUpdateAction.disabled = false;
+          btnUpdateAction.setAttribute("data-status", "downloaded");
+          btnUpdateAction.textContent = "O‘rnatish va qayta ishga tushirish";
+          btnUpdateAction.style.background = "linear-gradient(135deg, #16a34a, #15803d)";
+        }
+      });
+    }
+
+    // 5. Xatolik yuz berganda
+    if (typeof window.electronAPI.onUpdateError === "function") {
+      window.electronAPI.onUpdateError((err) => {
+        logToFile(`AutoUpdater xatolik: ${err}`, "WARNING");
+      });
+    }
+  }
 </script>
 </body>
 </html>
