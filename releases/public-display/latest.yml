@@ -1,8 +1,8 @@
-version: 1.3.0
+version: 1.4.0
 files:
-  - url: https://github.com/izzatbekulkanov/NamSPI_REGISTRATOR/releases/download/v1.3.0/NamDPI-Xizmat-Monitor-Setup-1.3.0.exe
-    sha512: RuJ20R66OttKl/xvBLFsQrOPdrvKlokeIp41rAQSK3R/BW8VQdliUmuX/qlm9b99Fbef8+3be75oaU4O736B9A==
-    size: 95231791
-path: https://github.com/izzatbekulkanov/NamSPI_REGISTRATOR/releases/download/v1.3.0/NamDPI-Xizmat-Monitor-Setup-1.3.0.exe
-sha512: RuJ20R66OttKl/xvBLFsQrOPdrvKlokeIp41rAQSK3R/BW8VQdliUmuX/qlm9b99Fbef8+3be75oaU4O736B9A==
-releaseDate: '2026-09-24T11:31:00.300Z'
+  - url: NamDPI Xizmat Monitor Setup 1.4.0.exe
+    sha512: 5LguVBgbIzweqaQjPrujV5GN4chlxUqMImpEFcwhABv4Y92CkIZ1th3DIeq9G2/vHIEOQ97EdeNs2w4BNAtpaA==
+    size: 101614706
+path: NamDPI Xizmat Monitor Setup 1.4.0.exe
+sha512: 5LguVBgbIzweqaQjPrujV5GN4chlxUqMImpEFcwhABv4Y92CkIZ1th3DIeq9G2/vHIEOQ97EdeNs2w4BNAtpaA==
+releaseDate: '2026-09-24T11:48:56.722Z'
