@@ -1,15 +1,34 @@
-const API_URL = "https://navbat.namspi.uz/api/tickets/today/";
-
-const DEFAULT_API_URL = "https://navbat.namspi.uz/api/tickets/serving/";
-let currentApiUrl = localStorage.getItem("API_URL") || DEFAULT_API_URL;
+// API manzili (today/ endpointida serving va waiting ikkalasi ham bo'ladi)
+function getApiUrl() {
+    let url = localStorage.getItem("API_URL");
+    if (!url || url.includes("/tickets/serving/")) {
+        url = "https://navbat.namspi.uz/api/tickets/today/";
+        localStorage.setItem("API_URL", url);
+    }
+    return url;
+}
 
 // Oldingi navbatlarni saqlash va yangi navbatlarni aniqlash
-let announcedTicketIds = new Set();
+let previousTickets = [];
 let isFirstLoad = true;
 
 // E’lonlar navbati (Audio / Visual Queue)
 let announcementQueue = [];
 let isAnnouncing = false;
+
+// API statusini yangilash
+function updateApiStatus(online = true) {
+    const apiStatus = document.getElementById("apiStatus");
+    const apiStatusText = document.getElementById("apiStatusText");
+    if (!apiStatus || !apiStatusText) return;
+    if (online) {
+        apiStatus.className = "status-badge status-online";
+        apiStatusText.textContent = "Bog‘langan";
+    } else {
+        apiStatus.className = "status-badge status-offline";
+        apiStatusText.textContent = "Ulanmagan";
+    }
+}
 
 // Raqamlarni o'zbekcha tartib sonlarga aylantirish (masalan: 10 -> "o‘ninchi", 4 -> "to‘rtinchi")
 function numberToUzbekOrdinal(val) {
@@ -97,14 +116,24 @@ function buildSpeechText(ticket) {
 
 async function fetchServingTickets() {
     try {
-        const res = await fetch(API_URL);
+        const apiUrl = getApiUrl();
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error(`HTTP xato: ${res.status}`);
         const data = await res.json();
+        updateApiStatus(true);
 
         const tbody = document.getElementById("ticket-body");
         const waitingBody = document.getElementById("waiting-body");
 
-        const servingTickets = data.tickets?.serving || [];
-        const waitingTickets = data.tickets?.waiting || [];
+        let servingTickets = [];
+        let waitingTickets = [];
+
+        if (data.tickets) {
+            servingTickets = data.tickets.serving || [];
+            waitingTickets = data.tickets.waiting || [];
+        } else if (data.serving_tickets) {
+            servingTickets = data.serving_tickets || [];
+        }
 
         // Yangi yoki qayta chaqirilgan navbatlarni aniqlash
         const newTickets = servingTickets.filter(ticket =>
@@ -115,43 +144,77 @@ async function fetchServingTickets() {
             )
         );
 
-        // Yangi navbatlarni e’lonlar navbatiga qo‘shish
-        if (newTickets.length > 0) {
+        // Yangi navbatlarni e’lonlar navbatiga qo‘shish (faqat birinchi yuklashdan keyin)
+        if (!isFirstLoad && newTickets.length > 0) {
             announcementQueue.push(...newTickets);
             if (!isAnnouncing) {
                 announceNextTicket();
             }
         }
+        isFirstLoad = false;
 
-        // 1. Hizmat ko'rsatilayotganlar jadvalini yangilash
-        tbody.innerHTML = "";
-        servingTickets.forEach(ticket => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${ticket.ticket_number}</td>
-                <td>${ticket.window_number || "—"}</td>
-            `;
-            tbody.appendChild(row);
-        });
+        // 1. Xizmat ko'rsatilayotganlar jadvalini yangilash
+        if (tbody) {
+            tbody.innerHTML = "";
+            if (servingTickets.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="2" style="font-size: 18px; color: rgba(255,255,255,0.5); padding: 24px; text-align: center;">
+                            Hozirda xizmat ko‘rsatilayotgan navbatlar yo‘q
+                        </td>
+                    </tr>
+                `;
+            } else {
+                servingTickets.forEach(ticket => {
+                    const row = document.createElement("tr");
+                    const windowDisplay = ticket.window_number 
+                        ? `<span class="window-pill">${ticket.window_number} - oyna</span>` 
+                        : "—";
+                    row.innerHTML = `
+                        <td class="ticket-cell">${ticket.ticket_number}</td>
+                        <td>${windowDisplay}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
 
         // 2. Kutayotganlar jadvalini yangilash
-        waitingBody.innerHTML = "";
-        waitingTickets.forEach(ticket => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${ticket.ticket_number}</td>
-                <td>Kutmoqda</td>
-            `;
-            waitingBody.appendChild(row);
-        });
+        if (waitingBody) {
+            waitingBody.innerHTML = "";
+            if (waitingTickets.length === 0) {
+                waitingBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" style="font-size: 16px; color: rgba(255,255,255,0.5); padding: 16px; text-align: center;">
+                            Kutayotgan navbatlar yo‘q
+                        </td>
+                    </tr>
+                `;
+            } else {
+                waitingTickets.forEach(ticket => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td class="ticket-cell" style="font-size: 26px;">${ticket.ticket_number}</td>
+                        <td><span style="background: rgba(59, 130, 246, 0.25); color: #93c5fd; padding: 4px 14px; border-radius: 12px; font-size: 15px; font-weight: 600;">Kutmoqda</span></td>
+                    `;
+                    waitingBody.appendChild(row);
+                });
+            }
+        }
 
         // Oldingi navbatlarni yangilash
         previousTickets = [...servingTickets];
 
     } catch (error) {
         console.error("❌ API xatolik:", error);
+        updateApiStatus(false);
     }
 }
+
+window.reloadApiUrl = () => {
+    isFirstLoad = true;
+    fetchServingTickets();
+};
 
 // E’lon qilish funksiyasi (Ding-dong + Microsoft Edge TTS)
 async function announceNextTicket() {

@@ -39,11 +39,14 @@ const saveSettingsBtn = document.getElementById("saveSettingsBtn");
 const resetApiBtn = document.getElementById("resetApiBtn");
 const apiUrlInput = document.getElementById("apiUrlInput");
 
-const DEFAULT_API_URL = "https://navbat.namspi.uz/api/tickets/serving/";
+const DEFAULT_APP_API_URL = "https://navbat.namspi.uz/api/tickets/today/";
 
 if (settingsBtn && settingsModal) {
     settingsBtn.addEventListener("click", () => {
-        const currentUrl = localStorage.getItem("API_URL") || DEFAULT_API_URL;
+        let currentUrl = localStorage.getItem("API_URL");
+        if (!currentUrl || currentUrl.includes("/tickets/serving/")) {
+            currentUrl = DEFAULT_APP_API_URL;
+        }
         apiUrlInput.value = currentUrl;
         settingsModal.classList.add("open");
     });
@@ -53,7 +56,7 @@ if (settingsBtn && settingsModal) {
     });
 
     resetApiBtn.addEventListener("click", () => {
-        apiUrlInput.value = DEFAULT_API_URL;
+        apiUrlInput.value = DEFAULT_APP_API_URL;
     });
 
     saveSettingsBtn.addEventListener("click", () => {
