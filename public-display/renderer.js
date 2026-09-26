@@ -384,6 +384,13 @@ if (window.electronAPI) {
     if (typeof window.electronAPI.onUpdateError === "function") {
         window.electronAPI.onUpdateError((err) => {
             console.warn("Update xatosi:", err);
+            if (btnUpdateAction) {
+                btnUpdateAction.disabled = false;
+                btnUpdateAction.textContent = "Qayta urinish";
+            }
+            if (updateDesc) {
+                updateDesc.innerHTML = `<span style="color: #f87171;">Yangilanishni yuklab olishda xatolik yuz berdi. Iltimos qayta urining yoki internet aloqasini tekshiring.</span>`;
+            }
         });
     }
 }
